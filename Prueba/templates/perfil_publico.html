@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load dict_extras %}
+{% block title %}{{ profesor.apodo|default:profesor.username }} — ProFinder{% endblock %}
+{% block body_class %}perfil-page{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="perfil-layout">
+
+    <!-- COLUMNA IZQUIERDA -->
+    <div class="perfil-izq">
+
+      <div class="perfil-card">
+        {% if profesor.foto %}
+          <img src="{{ profesor.foto.url }}" alt="{{ profesor.username }}" class="perfil-foto" />
+        {% else %}
+          <div class="perfil-foto-placeholder">{{ profesor.username|first|upper }}</div>
+        {% endif %}
+        <div class="perfil-info">
+          <h2 class="perfil-nombre">{{ profesor.apodo|default:profesor.username }}</h2>
+          <p class="perfil-username">@{{ profesor.username }}</p>
+          <div class="perfil-badge">{{ profesor.get_tipo_display }}</div>
+        </div>
+      </div>
+
+      <div class="perfil-datos">
+        <div class="perfil-fila">
+          <span class="perfil-label">{% if profesor.tipo == 'estudiante' %}Carrera{% else %}Ocupación{% endif %}</span>
+          <span class="perfil-valor">
+            {% if profesor.tipo == 'estudiante' %}
+              {{ profesor.get_carrera_display|default:"No especificado" }}
+            {% else %}
+              {{ profesor.get_empleo_display|default:"No especificado" }}
+            {% endif %}
+          </span>
+        </div>
+        {% if profesor.biografia %}
+        <div class="perfil-fila" style="align-items:flex-start;">
+          <span class="perfil-label">Biografía</span>
+          <span class="perfil-valor" style="text-align:right;">{{ profesor.biografia }}</span>
+        </div>
+        {% endif %}
+        <div class="perfil-fila">
+          <span class="perfil-label">Precio</span>
+          <span class="perfil-valor perfil-precio">
+            ${{ profesor.precio|default:0 }} <span>/ hr</span>
+          </span>
+        </div>
+      </div>
+
+    <div class="perfil-datos">
+      <div class="perfil-seccion-titulo">Materias que imparte</div>
+      <div style="padding: 0.5rem 1.1rem 1rem;">
+        {% regroup ramos_ordenados by depto as ramos_por_depto %}
+        {% for grupo in ramos_por_depto %}
+          <div style="margin-bottom:0.6rem;">
+            <div style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#aaa; margin-bottom:0.3rem;">
+              {{ grupo.grouper }}
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+              {% for ramo in grupo.list %}
+                <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
+              {% endfor %}
+            </div>
+          </div>
+        {% empty %}
+          <p style="font-size:0.78rem; color:#bbb;">Sin ramos asignados.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+      {% if es_mi_perfil %}
+        <a href="{% url 'perfil' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:block;">
+          Editar mi perfil
+        </a>
+      {% elif request.user.is_authenticated %}
+        <!-- Botón principal — cambia entre "Agendar hora" y "Confirmar selección" -->
+        <button id="btn-agendar" onclick="iniciarAgendamiento()" class="btn-submit" style="border:none; cursor:pointer;">
+          Agendar hora
+        </button>
+        <button id="btn-confirmar" onclick="confirmarAgendamiento()" class="btn-submit" style="border:none; cursor:pointer; display:none; background:#208c1d;">
+          Confirmar selección
+        </button>
+        <button id="btn-cancelar-agenda" onclick="cancelarAgendamiento()" class="btn-horario btn-horario-descartar" style="width:100%; display:none; margin-top:0.4rem;">
+          Cancelar
+        </button>
+
+        <!-- Info del bloque seleccionado -->
+        <div id="bloque-seleccionado-info" style="display:none; margin-top:0.5rem; padding:0.7rem 1rem; background:#eef4fd; border:1.5px solid #1a56a0; border-radius:10px; font-size:0.85rem; color:#1a56a0; font-weight:600; text-align:center;">
+        </div>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:block;">
+          Inicia sesión para agendar
+        </a>
+      {% endif %}
+
+    </div>
+
+    <!-- COLUMNA DERECHA -->
+    <div class="perfil-der">
+    <div class="horario-header">
+      <div class="horario-titulo">Disponibilidad</div>
+      <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem;">
+          {% if semana_offset > 0 %}
+            <a href="?semana={{ semana_offset|add:'-1' }}"
+              style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">
+              ← Anterior
+            </a>
+          {% else %}
+            <span style="padding:0.3rem 0.7rem; background:#f5f5f0; border:1.5px solid #e8e8e3; border-radius:8px; font-size:0.78rem; font-weight:700; color:#bbb;">
+              ← Anterior
+            </span>
+          {% endif %}
+          <span style="font-size:0.82rem; font-weight:600; color:#555;">
+            {{ lunes|date:"d M Y" }} — {{ sabado|date:"d M Y" }}
+          </span>
+        <a href="?semana={{ semana_offset|add:'1' }}"
+          style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">
+          Siguiente →
+        </a>
+      </div>
+      <p class="horario-sub" id="horario-sub" style="margin-top:0.4rem;">Verde: disponible — Rojo: reservado.</p>
+    </div>
+
+    <div class="horario-grid" id="horario-grid">      <div class="horario-vacia"></div>
+      {% for dia in dias %}
+        <div class="horario-dia" style="display:flex; flex-direction:column; align-items:center;">
+          <span>{{ dia }}</span>
+          <span style="font-size:0.6rem; color:#bbb; font-weight:500;">
+            {{ fechas_semana|get_item:dia|date:"d/m" }}
+          </span>
+        </div>
+      {% endfor %}
+      {% for hora in horas %}
+        <div class="horario-hora">{{ hora }}</div>
+        {% for dia in dias %}
+          <div class="horario-bloque solo-lectura"
+              data-hora="{{ hora }}"
+              data-dia="{{ dia }}"
+              data-fecha="{{ fechas_semana|get_item:dia }}">
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+
+      <!-- Mis horas agendadas -->
+      {% if not es_mi_perfil and request.user.is_authenticated %}
+      <div style="margin-top:1.2rem; background:#fff; border:1.5px solid #dce8f5; border-radius:14px; overflow:hidden;">
+        <div class="perfil-seccion-titulo" style="padding:0.8rem 1.1rem 0.4rem;">
+          Mis horas agendadas
+        </div>
+
+      {% if mis_reservas %}
+        {% for r in mis_reservas %}
+          <div class="perfil-fila">
+            <span class="perfil-valor" style="font-weight:600;">
+              {{ r.fecha_display }} — {{ r.dia }} {{ r.hora }}
+            </span>
+            <span class="badge-reserva badge-{{ r.estado }}">{{ r.estado|capfirst }}</span>
+          </div>
+        {% endfor %}
+
+        {% if tiene_confirmada %}
+          <div style="border-top:1px solid #eef4fd; padding:0.8rem 1.1rem;">
+            <div style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#aaa; margin-bottom:0.6rem;">
+              Datos de contacto
+            </div>
+            <div style="font-size:0.83rem; color:#1a1a1a; display:flex; flex-direction:column; gap:0.3rem;">
+              <span><span style="color:#aaa; font-weight:600;">Correo:</span> {{ profesor.email|default:"No especificado" }}</span>
+              <span><span style="color:#aaa; font-weight:600;">Teléfono:</span> {{ profesor.telefono|default:"No especificado" }}</span>
+            </div>
+          </div>
+        {% else %}
+          <div style="padding:0.5rem 1.1rem 0.8rem; font-size:0.78rem; color:#bbb; text-align:center;">
+            Tu hora está pendiente de confirmación por el profesor.
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div style="padding:0.7rem 1.1rem 1rem; text-align:center;">
+          <p style="font-size:0.78rem; color:#bbb;">No tienes horas agendadas con este profesor.<br>Presiona "Agendar hora" para comenzar.</p>
+        </div>
+      {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script id="horario-data"  type="application/json">{{ horario_guardado|safe }}</script>
+<script id="reservas-data" type="application/json">{{ reservas|safe }}</script>
+<script id="profesor-id"   type="application/json">{{ profesor_id }}</script>
+<script id="es-mi-perfil"  type="application/json">{{ es_mi_perfil|yesno:"true,false" }}</script>
+<script id="autenticado"   type="application/json">{{ request.user.is_authenticated|yesno:"true,false" }}</script>
+
+<script>
+  const reservas     = JSON.parse(document.getElementById('reservas-data').textContent);
+  const profesorId   = JSON.parse(document.getElementById('profesor-id').textContent);
+  const esMiPerfil   = JSON.parse(document.getElementById('es-mi-perfil').textContent);
+  const autenticado  = JSON.parse(document.getElementById('autenticado').textContent);
+  let bloqueElegido  = null;
+  let modoAgendando  = false;
+
+  setTimeout(() => {
+    // Pintar reservas en rojo
+    reservas.forEach(clave => {
+      const [dia, hora] = clave.split('_');
+      const b = document.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+      if (b) {
+        b.style.background  = '#e74c3c';
+        b.style.borderColor = '#c0392b';
+        b.dataset.reservado = 'true';
+      }
+    });
+
+    // Marcar disponibles
+    document.querySelectorAll('.horario-bloque').forEach(b => {
+      const bg = window.getComputedStyle(b).backgroundColor;
+      // verde = rgb(42, 169, 38)
+      if (b.style.background === '#2aa926' || bg === 'rgb(42, 169, 38)') {
+        b.dataset.disponible = 'true';
+      }
+    });
+  }, 150);
+
+  // Un solo listener global que nunca se bloquea
+  document.addEventListener('click', e => {
+    if (!modoAgendando) return;
+    const b = e.target.closest('.horario-bloque');
+    if (!b) return;
+    if (b.dataset.disponible !== 'true') return;
+    e.stopPropagation();
+
+    if (bloqueElegido) bloqueElegido.style.outline = '';
+    bloqueElegido = b;
+    b.style.outline = '3px solid #1a56a0';
+
+    const info = document.getElementById('bloque-seleccionado-info');
+    info.textContent   = `Seleccionaste: ${b.dataset.dia} a las ${b.dataset.hora}`;
+    info.style.display = 'block';
+    document.getElementById('btn-confirmar').style.display = 'block';
+  }, true); // <-- useCapture: true, se ejecuta antes que cualquier otro handler
+
+  function iniciarAgendamiento() {
+    modoAgendando = true;
+    document.body.classList.add('modo-agendar');
+    document.getElementById('horario-sub').textContent           = 'Selecciona un bloque verde para agendar.';
+    document.getElementById('btn-agendar').style.display         = 'none';
+    document.getElementById('btn-confirmar').style.display       = 'none';
+    document.getElementById('btn-cancelar-agenda').style.display = 'block';
+    document.getElementById('bloque-seleccionado-info').style.display = 'none';
+
+    document.querySelectorAll('.horario-bloque').forEach(b => {
+      if (b.dataset.disponible === 'true') {
+        b.classList.add('disponible-click');
+      }
+    });
+  }
+
+  function cancelarAgendamiento() {
+    modoAgendando = false;
+    document.body.classList.remove('modo-agendar');
+    if (bloqueElegido) {
+      bloqueElegido.style.outline = '';
+      bloqueElegido = null;
+    }
+
+    document.getElementById('horario-sub').textContent           = 'Verde: disponible — Rojo: reservado.';
+    document.getElementById('btn-agendar').style.display         = 'block';
+    document.getElementById('btn-confirmar').style.display       = 'none';
+    document.getElementById('btn-cancelar-agenda').style.display = 'none';
+    document.getElementById('bloque-seleccionado-info').style.display = 'none';
+
+    document.querySelectorAll('.horario-bloque.disponible-click').forEach(b => {
+      b.classList.remove('disponible-click');
+    });
+  }
+
+  async function confirmarAgendamiento() {
+    if (!bloqueElegido) return;
+    const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+
+    const res = await fetch('/agendar-hora/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({
+        profesor_id: profesorId,
+        dia:   bloqueElegido.dataset.dia,
+        hora:  bloqueElegido.dataset.hora,
+        fecha: bloqueElegido.dataset.fecha,  // ← fecha exacta
+      })
+    });
+
+    if (res.ok) { location.reload(); }
+    else {
+      const data = await res.json();
+      alert(data.error || 'Error al agendar.');
+    }
+  }
+  
+</script>
+
+<script id="pendientes-data" type="application/json">{{ pendientes|safe }}</script>
+
+<script>
+  const pendientesProf = JSON.parse(document.getElementById('pendientes-data').textContent);
+
+  setTimeout(() => {
+    pendientesProf.forEach(clave => {
+      const [dia, hora] = clave.split('_');
+      const b = document.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+      if (b) {
+        b.style.background  = '#f39c12';
+        b.style.borderColor = '#d68910';
+        b.dataset.reservado = 'true'; // no agendable
+      }
+    });
+  }, 150);
+</script>
+{% endblock %}

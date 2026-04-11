@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Buscar Ramo — ProFinder{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="titulo-busqueda">{{ titulo }}</div>
+
+  {% if depto_activo %}
+  <div class="breadcrumb">
+    <a href="?">Inicio</a>
+    <span class="sep">›</span>
+    <a href="?depto={{ depto_activo }}">{{ depto_activo }}</a>
+    {% if ramo_activo %}
+    <span class="sep">›</span>
+    <span>{{ ramo_activo }}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+
+<div class="deptos">
+  <a href="?depto=M1" class="depto-carta {% if depto_activo == 'M1' %}activa{% endif %}">
+    <div class="depto-icono">📐</div>
+    <div class="depto-nombre">M1</div>
+    <div class="depto-sub">Competencia Matemática 1</div>
+  </a>
+  <a href="?depto=M2" class="depto-carta {% if depto_activo == 'M2' %}activa{% endif %}">
+    <div class="depto-icono">📊</div>
+    <div class="depto-nombre">M2</div>
+    <div class="depto-sub">Competencia Matemática 2</div>
+  </a>
+  <a href="?depto=Competencia Lectora" class="depto-carta {% if depto_activo == 'Competencia Lectora' %}activa{% endif %}">
+    <div class="depto-icono">📖</div>
+    <div class="depto-nombre">Lectora</div>
+    <div class="depto-sub">Competencia Lectora</div>
+  </a>
+  <a href="?depto=Historia y Cs. Sociales" class="depto-carta {% if depto_activo == 'Historia y Cs. Sociales' %}activa{% endif %}">
+    <div class="depto-icono">🏛️</div>
+    <div class="depto-nombre">Historia</div>
+    <div class="depto-sub">Historia y Cs. Sociales</div>
+  </a>
+  <a href="?depto=Ciencias - Biología" class="depto-carta {% if depto_activo == 'Ciencias - Biología' %}activa{% endif %}">
+    <div class="depto-icono">🧬</div>
+    <div class="depto-nombre">Biología</div>
+    <div class="depto-sub">Ciencias — Biología</div>
+  </a>
+  <a href="?depto=Ciencias - Física" class="depto-carta {% if depto_activo == 'Ciencias - Física' %}activa{% endif %}">
+    <div class="depto-icono">⚛️</div>
+    <div class="depto-nombre">Física</div>
+    <div class="depto-sub">Ciencias — Física</div>
+  </a>
+  <a href="?depto=Ciencias - Química" class="depto-carta {% if depto_activo == 'Ciencias - Química' %}activa{% endif %}">
+    <div class="depto-icono">🧪</div>
+    <div class="depto-nombre">Química</div>
+    <div class="depto-sub">Ciencias — Química</div>
+  </a>
+</div>
+
+  {% if depto_activo and ramos_del_depto %}
+  <div class="ramos-seccion">
+    <div class="ramos-titulo">Unidades de {{ depto_activo }}</div>
+    <div class="ramos-grid">
+      {% for ramo in ramos_del_depto %}
+      <a href="?depto={{ depto_activo }}&ramo={{ ramo }}"
+         class="ramo-btn {% if ramo == ramo_activo %}activo{% endif %}">{{ ramo }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if ramo_activo %}
+  <div class="profesores-seccion">
+    <div class="profesores-titulo">Profesores que imparten &laquo;{{ ramo_activo }}&raquo;</div>
+    <div class="profesores-lista">
+    {% for profesor in profesores %}
+    <a href="{% url 'perfil_publico' profesor.id %}" class="profesor-item" style="text-decoration:none;">
+      {% if profesor.foto %}
+        <img class="profesor-foto" src="{{ profesor.foto }}" alt="{{ profesor.nombre }}" />
+      {% else %}
+        <div class="profesor-foto-placeholder">{{ profesor.nombre|first|upper }}</div>
+      {% endif %}
+      <div class="profesor-info">
+        <div class="profesor-nombre">{{ profesor.nombre }}</div>
+        <div class="profesor-ramos">{{ profesor.ramos|join:", " }}</div>
+      </div>
+      <div class="profesor-precio">
+        ${{ profesor.precio|floatformat:0 }}<span>/ hr</span>
+      </div>
+    </a>
+    {% empty %}
+    <div class="vacio">No hay profesores disponibles para este ramo.</div>
+    {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

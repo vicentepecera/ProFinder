@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Registro — ProFinder{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block content %}
+<div class="page-body">
+  <div class="login-card" style="max-width: 480px;">
+
+    <div class="card-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+
+    <h2>Crear cuenta</h2>
+    <p class="subtitulo">Completa tus datos para registrarte en ProFinder</p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Selector de rol -->
+      <div class="field">
+        <label>¿Cómo quieres usar ProFinder?</label>
+        <div style="display:flex; gap:0.6rem; margin-top:0.2rem;">
+          <label id="card-estudiante" onclick="seleccionarRol('estudiante')" style="
+            flex:1; padding:0.9rem; border:2px solid #1a56a0; border-radius:12px;
+            cursor:pointer; text-align:center; transition:all 0.13s; background:#eef4fd;">
+            <input type="radio" name="rol" value="estudiante" style="display:none;" checked>
+            <div style="font-size:1.3rem; margin-bottom:0.3rem;">🎓</div>
+            <div style="font-size:0.82rem; font-weight:700; color:#1a1a1a;">Estudiante</div>
+            <div style="font-size:0.72rem; color:#aaa; margin-top:0.2rem;">Busco clases</div>
+          </label>
+          <label id="card-profesor" onclick="seleccionarRol('profesor')" style="
+            flex:1; padding:0.9rem; border:2px solid #dce8f5; border-radius:12px;
+            cursor:pointer; text-align:center; transition:all 0.13s; background:#f5f9ff;">
+            <input type="radio" name="rol" value="profesor" style="display:none;">
+            <div style="font-size:1.3rem; margin-bottom:0.3rem;">📚</div>
+            <div style="font-size:0.82rem; font-weight:700; color:#1a1a1a;">Profesor</div>
+            <div style="font-size:0.72rem; color:#aaa; margin-top:0.2rem;">Doy clases (y también puedo tomar)</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="nombre_usuario">Nombre de usuario</label>
+        <input type="text" id="nombre_usuario" name="nombre" placeholder="Tu nombre de usuario" required autofocus />
+      </div>
+
+      <div class="field">
+        <label for="apodo">Nombre completo</label>
+        <input type="text" id="apodo" name="apodo" placeholder="Ingrese su nombre completo" required />
+      </div>
+
+      <div class="field">
+        <label for="mail">Correo electrónico</label>
+        <input type="email" id="mail" name="mail" placeholder="tucorreo@ejemplo.com" required />
+      </div>
+
+      <div class="field">
+        <label for="telefono">Número de teléfono</label>
+        <input type="tel" id="telefono" name="telefono" placeholder="+56 9 1234 5678" />
+      </div>
+
+      <!-- Soy — solo visible para profesores -->
+      <div class="field" id="campo-tipo" style="display:none;">
+        <label for="tipo">Soy</label>
+        <select id="tipo" name="tipo" onchange="toggleTipo(this.value)"
+          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+          <option value="" disabled selected>Elige una opción</option>
+          <option value="estudiante">Estudiante</option>
+          <option value="trabajador">Trabajador/a</option>
+        </select>
+      </div>
+
+      <div class="field" id="campo-carrera" style="display:none;">
+        <label for="carrera">Carrera</label>
+        <select id="carrera" name="carrera"
+          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+          <option value="" disabled selected>Elige tu carrera</option>
+          <option value="ing_civil">Ingeniería Civil</option>
+          <option value="ing_comercial">Ingeniería Comercial</option>
+          <option value="medicina">Medicina</option>
+          <option value="derecho">Derecho</option>
+          <option value="psicologia">Psicología</option>
+          <option value="pedagogia">Pedagogía</option>
+          <option value="arquitectura">Arquitectura</option>
+          <option value="administracion">Administración de Empresas</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="field" id="campo-empleo" style="display:none;">
+        <label for="empleo">Ocupación</label>
+        <select id="empleo" name="empleo"
+          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+          <option value="" disabled selected>Elige tu ocupación</option>
+          <option value="profesor">Profesor/a</option>
+          <option value="ingeniero">Ingeniero/a</option>
+          <option value="medico">Médico/a</option>
+          <option value="abogado">Abogado/a</option>
+          <option value="contador">Contador/a</option>
+          <option value="diseñador">Diseñador/a</option>
+          <option value="estudiante_posgrado">Estudiante de posgrado</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="contraseña">Contraseña</label>
+        <input type="password" id="contraseña" name="contraseña" placeholder="••••••••" required />
+      </div>
+
+      <button type="submit" class="btn-submit">Crear cuenta</button>
+    </form>
+
+    <div class="footer-link">
+      ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function seleccionarRol(rol) {
+    const cards = { estudiante: 'card-estudiante', profesor: 'card-profesor' };
+    Object.keys(cards).forEach(r => {
+      const card  = document.getElementById(cards[r]);
+      const radio = card.querySelector('input[type="radio"]');
+      if (r === rol) {
+        card.style.border     = '2px solid #1a56a0';
+        card.style.background = '#eef4fd';
+        radio.checked = true;
+      } else {
+        card.style.border     = '2px solid #dce8f5';
+        card.style.background = '#f5f9ff';
+        radio.checked = false;
+      }
+    });
+
+    // "Soy" solo aparece para profesores
+    document.getElementById('campo-tipo').style.display    = rol === 'profesor' ? 'block' : 'none';
+    document.getElementById('campo-carrera').style.display = 'none';
+    document.getElementById('campo-empleo').style.display  = 'none';
+  }
+
+  function toggleTipo(valor) {
+    document.getElementById('campo-carrera').style.display = valor === 'estudiante' ? 'block' : 'none';
+    document.getElementById('campo-empleo').style.display  = valor === 'trabajador'  ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

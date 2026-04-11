@@ -1,0 +1,480 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ProFinder{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+  {% if user.is_authenticated %}
+  <!-- Overlay -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" style="
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35);
+    z-index:200; backdrop-filter:blur(2px);"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar" style="
+    position:fixed; top:0; left:-320px; width:300px; height:100vh;
+    background:#fff; z-index:201; box-shadow:4px 0 32px rgba(26,86,160,0.15);
+    transition:left 0.25s cubic-bezier(0.4,0,0.2,1);
+    display:flex; flex-direction:column; overflow:hidden;">
+
+    <!-- Header sidebar -->
+    <div style="background:linear-gradient(135deg,#1a56a0,#2563eb); padding:1.5rem 1.2rem 1.2rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <span style="font-size:1rem; font-weight:800; color:#fff; letter-spacing:-0.02em;">ProFinder</span>
+        <button onclick="toggleSidebar()" style="
+          background:rgba(255,255,255,0.15); border:none; border-radius:8px;
+          width:30px; height:30px; cursor:pointer; color:#fff; font-size:1rem;
+          display:flex; align-items:center; justify-content:center;">✕</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.7rem;">
+        {% if user.foto %}
+          <img src="{{ user.foto.url }}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.4);" />
+        {% else %}
+          <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1rem;">
+            {{ user.username|first|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;color:#fff;">{{ user.apodo|default:user.username }}</div>
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.6);">@{{ user.username }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav links -->
+    <div style="padding:0.5rem 0; border-bottom:1px solid #eef4fd;">
+      <a href="{% url 'tablero' %}" style="display:flex;align-items:center;gap:0.8rem;padding:0.75rem 1.2rem;font-size:0.88rem;font-weight:600;color:#1a1a1a;text-decoration:none;">
+        🏠 Tablero
+      </a>
+      <a href="{% url 'perfil' %}" style="display:flex;align-items:center;gap:0.8rem;padding:0.75rem 1.2rem;font-size:0.88rem;font-weight:600;color:#1a1a1a;text-decoration:none;">
+        👤 Mi perfil
+      </a>
+      <a href="{% url 'notificaciones' %}" style="display:flex;align-items:center;gap:0.8rem;padding:0.75rem 1.2rem;font-size:0.88rem;font-weight:600;color:#1a1a1a;text-decoration:none;">
+        🔔 Notificaciones
+      </a>
+    </div>
+
+    <!-- Mis profesores -->
+    <div style="flex:1; overflow-y:auto; padding:1rem 1.2rem;">
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:0.8rem;">
+        Mis profesores
+      </div>
+      <div id="sidebar-profesores">
+        <div style="font-size:0.8rem;color:#bbb;text-align:center;padding:1rem 0;">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- Cerrar sesión -->
+    <div style="padding:1rem 1.2rem; border-top:1px solid #eef4fd;">
+      <a href="{% url 'logout' %}" style="
+        display:flex;align-items:center;gap:0.8rem;padding:0.75rem 1rem;
+        font-size:0.88rem;font-weight:600;color:#e74c3c;text-decoration:none;
+        background:#fff5f5;border-radius:10px;border:1px solid #f5c6c6;">
+        🚪 Cerrar sesión
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+<header class="header">
+  <div class="header-inner">
+
+    <div class="header-left" style="display:flex; align-items:center; gap:0.8rem;">
+
+      <!-- Hamburguesa -->
+      {% if user.is_authenticated %}
+      <button onclick="toggleSidebar()" style="
+        display:flex; flex-direction:column; justify-content:center; gap:5px;
+        background:transparent; border:none; cursor:pointer; padding:6px 4px; flex-shrink:0;">
+        <span style="display:block;width:22px;height:2.5px;background:#fff;border-radius:2px;"></span>
+        <span style="display:block;width:22px;height:2.5px;background:#fff;border-radius:2px;"></span>
+        <span style="display:block;width:22px;height:2.5px;background:#fff;border-radius:2px;"></span>
+      </button>
+      {% endif %}
+
+      <!-- Logo SVG -->
+      <a href="{% url 'inicio' %}" style="text-decoration:none; display:flex; align-items:center;">
+        <svg height="36" viewBox="0 0 340 60" xmlns="http://www.w3.org/2000/svg">
+          <!-- Lupa: círculo -->
+          <circle cx="22" cy="26" r="14" fill="none" stroke="#fff" stroke-width="3.5"/>
+          <!-- Lupa: líneas internas -->
+          <line x1="15" y1="22" x2="29" y2="22" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          <line x1="15" y1="27" x2="29" y2="27" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+          <line x1="15" y1="32" x2="24" y2="32" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+          <!-- Lupa: mango -->
+          <line x1="33" y1="37" x2="44" y2="48" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+          <!-- Lupa: punto acento -->
+          <circle cx="44" cy="48" r="2.5" fill="#7dd3fc"/>
+          <!-- Texto Pro -->
+          <text x="54" y="38"
+            font-family="'Plus Jakarta Sans', sans-serif"
+            font-weight="800" font-size="28"
+            fill="#7dd3fc"
+            letter-spacing="-1">Pro</text>
+          <!-- Texto Finder -->
+          <text x="104" y="38"
+            font-family="'Plus Jakarta Sans', sans-serif"
+            font-weight="800" font-size="28"
+            fill="#fff"
+            letter-spacing="-1">Finder</text>
+        </svg>
+      </a>
+
+    </div>
+
+    <div class="header-right">
+      {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="btn-auth btn-logout">Cerrar sesión</a>
+        <div style="position:relative;" id="avatar-wrapper">
+          <div onclick="toggleAvatarMenu()" style="cursor:pointer; position:relative;" class="avatar-link">
+            {% if user.foto %}
+              <img src="{{ user.foto.url }}" alt="{{ user.username }}" class="avatar-img" />
+            {% else %}
+              <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
+            {% endif %}
+            <!-- Punto rojo de notificaciones -->
+            <span id="avatar-dot" style="
+              display:none;
+              position:absolute;
+              top:0; right:0;
+              width:10px; height:10px;
+              background:#e74c3c;
+              border-radius:50%;
+              border:2px solid #1a56a0;">
+            </span>
+          </div>
+  <!-- resto del dropdown -->
+          <div id="avatar-menu" style="
+            display:none; position:absolute; top:calc(100% + 0.6rem); right:0;
+            background:#fff; border:1.5px solid #dce8f5; border-radius:12px;
+            box-shadow:0 8px 24px rgba(26,86,160,0.12); min-width:180px;
+            z-index:100; overflow:hidden;">
+            <a href="{% url 'perfil' %}" style="
+              display:flex; align-items:center; gap:0.7rem; padding:0.75rem 1rem;
+              font-size:0.83rem; font-weight:600; color:#1a1a1a;
+              text-decoration:none; border-bottom:1px solid #eef4fd; transition:background 0.12s;">
+              👤 Mi perfil
+            </a>
+            <a href="{% url 'notificaciones' %}" id="link-notificaciones" style="
+              display:flex; align-items:center; gap:0.7rem; padding:0.75rem 1rem;
+              font-size:0.83rem; font-weight:600; color:#1a1a1a;
+              text-decoration:none; transition:background 0.12s;">
+              🔔 Notificaciones
+              <span id="notif-badge" style="
+                display:none; margin-left:auto; background:#e74c3c; color:#fff;
+                font-size:0.6rem; font-weight:700; min-width:18px; height:18px;
+                border-radius:20px; padding:0 4px; align-items:center;
+                justify-content:center; font-family:'Plus Jakarta Sans', sans-serif;">
+                0
+              </span>
+            </a>
+          </div>
+        </div>
+      {% else %}
+        <a href="{% url 'register_user' %}" class="btn-auth btn-ghost">Registrarse</a>
+        <a href="{% url 'login' %}" class="btn-auth btn-solid">Iniciar sesión</a>
+      {% endif %}
+    </div>
+
+  </div>
+</header>
+
+  {% block content %}{% endblock %}
+  {% block extra_js %}{% endblock %}
+
+<script>
+  const fechaEl = document.getElementById('fecha');
+  if (fechaEl) {
+    fechaEl.textContent =
+      new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  const _horarioEl      = document.getElementById('horario-data');
+  const horarioGuardado = _horarioEl ? JSON.parse(_horarioEl.textContent) : [];
+  let snapshotAnterior  = [];
+
+  function pintarVerde(b) { b.style.background = '#2aa926'; b.style.borderColor = '#208c1d'; }
+  function pintarGris(b)  { b.style.background = '#f0f4f8'; b.style.borderColor = '#dce8f5'; }
+
+  function iniciarHorario() {
+    const grid = document.getElementById('horario-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.horario-bloque').forEach(b => { b.classList.add('bloqueado'); pintarGris(b); });
+    horarioGuardado.forEach(clave => {
+      const [dia, hora] = clave.split('_');
+      const bloque = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+      if (bloque) { bloque.classList.add('disponible'); pintarVerde(bloque); }
+    });
+    actualizarTodosLosChecks();
+  }
+
+  function toggleBloque(el) {
+    if (el.classList.contains('bloqueado')) return;
+    if (el.dataset.ocupado === 'true') return;
+    el.classList.toggle('disponible');
+    if (el.classList.contains('disponible')) { pintarVerde(el); } else { pintarGris(el); }
+    actualizarCheckDia(el.dataset.dia);
+  }
+
+  function toggleDia(dia, checkbox) {
+    const grid = document.getElementById('horario-grid');
+    if (!grid) return;
+    grid.querySelectorAll(`.horario-bloque[data-dia="${dia}"]`).forEach(b => {
+      if (b.dataset.ocupado === 'true') return;
+      if (checkbox.checked) { b.classList.add('disponible'); pintarVerde(b); }
+      else { b.classList.remove('disponible'); pintarGris(b); }
+    });
+  }
+
+  function actualizarCheckDia(dia) {
+    const grid = document.getElementById('horario-grid');
+    if (!grid) return;
+    const bloques = grid.querySelectorAll(`.horario-bloque[data-dia="${dia}"]`);
+    const check   = document.getElementById(`check-${dia}`);
+    if (check) check.checked = [...bloques].every(b => b.classList.contains('disponible'));
+  }
+
+  function actualizarTodosLosChecks() {
+    ['Lun','Mar','Mié','Jue','Vie','Sáb'].forEach(actualizarCheckDia);
+  }
+
+  function activarEdicion() {
+    snapshotAnterior = obtenerBloques();
+    const grid = document.getElementById('horario-grid');
+    if (grid) grid.querySelectorAll('.horario-bloque').forEach(b => b.classList.remove('bloqueado'));
+    document.querySelectorAll('.horario-dia-label input').forEach(c => c.disabled = false);
+    document.getElementById('modo-ver-acciones').style.display    = 'none';
+    document.getElementById('modo-editar-acciones').style.display = 'flex';
+    document.getElementById('horario-sub-texto').textContent = 'Haz clic en un bloque o en el día para marcar disponibilidad.';
+  }
+
+  function descartarCambios() {
+    const grid = document.getElementById('horario-grid');
+    if (grid) {
+      grid.querySelectorAll('.horario-bloque').forEach(b => { b.classList.remove('disponible'); pintarGris(b); });
+      snapshotAnterior.forEach(clave => {
+        const [dia, hora] = clave.split('_');
+        const bloque = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+        if (bloque) { bloque.classList.add('disponible'); pintarVerde(bloque); }
+      });
+      if (typeof reservasData !== 'undefined') {
+        reservasData.forEach(clave => {
+          const [dia, hora] = clave.split('_');
+          const b = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+          if (b) { b.style.background = '#e74c3c'; b.style.borderColor = '#c0392b'; b.dataset.ocupado = 'true'; }
+        });
+      }
+      if (typeof pendientesData !== 'undefined') {
+        pendientesData.forEach(clave => {
+          const [dia, hora] = clave.split('_');
+          const b = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+          if (b) { b.style.background = '#f39c12'; b.style.borderColor = '#d68910'; b.dataset.ocupado = 'true'; }
+        });
+      }
+    }
+    desactivarEdicion();
+  }
+
+  function obtenerBloques() {
+    const grid = document.getElementById('horario-grid');
+    if (!grid) return [];
+    return [...grid.querySelectorAll('.horario-bloque.disponible')]
+      .map(b => `${b.dataset.dia}_${b.dataset.hora}`);
+  }
+
+  function desactivarEdicion() {
+    const grid = document.getElementById('horario-grid');
+    if (grid) grid.querySelectorAll('.horario-bloque').forEach(b => b.classList.add('bloqueado'));
+    document.querySelectorAll('.horario-dia-label input').forEach(c => c.disabled = true);
+    document.getElementById('modo-ver-acciones').style.display    = 'flex';
+    document.getElementById('modo-editar-acciones').style.display = 'none';
+    document.getElementById('horario-sub-texto').textContent = 'Tus horarios disponibles para clases.';
+    actualizarTodosLosChecks();
+  }
+
+  async function guardarHorario() {
+    const bloques = obtenerBloques();
+    const csrf    = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    const res     = await fetch('/guardar-horario/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ bloques })
+    });
+    if (res.ok) { desactivarEdicion(); }
+    else { alert('Error al guardar. Intenta de nuevo.'); }
+  }
+
+  let snapshotRamos  = [];
+  let snapshotPrecio = 0;
+
+  function activarEdicionRamos() {
+    snapshotRamos  = [...document.querySelectorAll('.ramo-checkbox:checked')].map(c => c.value);
+    snapshotPrecio = document.getElementById('precio-input')?.value || 0;
+    document.getElementById('ramos-ver').style.display    = 'none';
+    document.getElementById('ramos-editar').style.display = 'block';
+    document.getElementById('btn-editar-ramos').style.display   = 'none';
+    document.getElementById('btn-ramos-acciones').style.display = 'flex';
+  }
+
+  function descartarRamos() {
+    document.querySelectorAll('.ramo-checkbox').forEach(c => {
+      c.checked = snapshotRamos.includes(c.value);
+      toggleRamoLabel(c);
+    });
+    if (document.getElementById('precio-input'))
+      document.getElementById('precio-input').value = snapshotPrecio;
+    cerrarEdicionRamos();
+  }
+
+  function cerrarEdicionRamos() {
+    document.getElementById('ramos-ver').style.display    = 'block';
+    document.getElementById('ramos-editar').style.display = 'none';
+    document.getElementById('btn-editar-ramos').style.display   = 'block';
+    document.getElementById('btn-ramos-acciones').style.display = 'none';
+  }
+
+  function toggleRamoLabel(checkbox) {
+    const label = checkbox.closest('label');
+    if (checkbox.checked) { label.classList.add('ramo-check-activo'); }
+    else { label.classList.remove('ramo-check-activo'); }
+  }
+
+  function toggleDepto(depto, checkbox) {
+    document.querySelectorAll(`.ramo-checkbox[data-depto="${depto}"]`).forEach(r => {
+      r.checked = checkbox.checked;
+      toggleRamoLabel(r);
+    });
+  }
+
+  function actualizarCheckDepto(depto) {
+    const ramos = document.querySelectorAll(`.ramo-checkbox[data-depto="${depto}"]`);
+    const todos = [...ramos].every(r => r.checked);
+    const check = [...document.querySelectorAll('input[id^="check-depto-"]')]
+      .find(c => c.nextElementSibling?.textContent.trim() === depto);
+    if (check) check.checked = todos;
+  }
+
+  async function guardarRamos() {
+    const ramos  = [...document.querySelectorAll('.ramo-checkbox:checked')].map(c => parseInt(c.value));
+    const precio = parseInt(document.getElementById('precio-input')?.value) || 0;
+    const csrf   = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    const res    = await fetch('/guardar-ramos/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ ramos, precio })
+    });
+    if (res.ok) {
+      document.getElementById('precio-display').innerHTML =
+        `$${precio.toLocaleString('es-CL')} <span>/ hr</span>`;
+      const lista   = document.getElementById('ramos-display');
+      const nombres = [...document.querySelectorAll('.ramo-checkbox:checked')]
+        .map(c => c.closest('label').textContent.trim());
+      lista.innerHTML = nombres.length
+        ? nombres.map(n => `<div class="perfil-ramo-tag">${n}</div>`).join('')
+        : '<p style="font-size:0.78rem; color:#bbb; padding:0.5rem 0;">Sin ramos asignados.</p>';
+      cerrarEdicionRamos();
+    } else { alert('Error al guardar. Intenta de nuevo.'); }
+  }
+
+  // ── Avatar dropdown ──
+  function toggleAvatarMenu() {
+    const menu = document.getElementById('avatar-menu');
+    if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+
+  document.addEventListener('click', e => {
+    const wrapper = document.getElementById('avatar-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      const menu = document.getElementById('avatar-menu');
+      if (menu) menu.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#avatar-menu a').forEach(a => {
+      a.addEventListener('mouseover', () => a.style.background = '#f5f9ff');
+      a.addEventListener('mouseout',  () => a.style.background = '');
+    });
+  });
+
+  // ── Contador notificaciones ──
+  async function cargarNotifCount() {
+    try {
+      const res   = await fetch('/notificaciones/count/');
+      const data  = await res.json();
+      const badge = document.getElementById('notif-badge');
+      const avatarDot = document.getElementById('avatar-dot');
+
+      if (data.count > 0) {
+        if (badge) { badge.textContent = data.count; badge.style.display = 'flex'; }
+        if (avatarDot) avatarDot.style.display = 'block';
+      } else {
+        if (badge) badge.style.display = 'none';
+        if (avatarDot) avatarDot.style.display = 'none';
+      }
+    } catch (e) {}
+  }
+
+  // ── Sidebar ──
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (!sidebar) return;
+    const abierto = sidebar.style.left === '0px';
+    if (abierto) {
+      sidebar.style.left    = '-320px';
+      overlay.style.display = 'none';
+    } else {
+      sidebar.style.left    = '0px';
+      overlay.style.display = 'block';
+      cargarMisProfesores();
+    }
+  }
+
+  async function cargarMisProfesores() {
+    const contenedor = document.getElementById('sidebar-profesores');
+    if (!contenedor) return;
+    try {
+      const res  = await fetch('/mis-profesores/');
+      const data = await res.json();
+      if (!data.profesores.length) {
+        contenedor.innerHTML = `
+          <div style="font-size:0.78rem;color:#bbb;text-align:center;padding:1rem 0;line-height:1.6;">
+            Aún no tienes clases confirmadas.<br>
+            <a href="/tablero/" style="color:#1a56a0;font-weight:600;">Buscar un profesor</a>
+          </div>`;
+        return;
+      }
+      contenedor.innerHTML = data.profesores.map(p => `
+        <a href="/perfil/${p.id}/" style="
+          display:flex;align-items:center;gap:0.8rem;
+          padding:0.75rem 0.9rem;margin-bottom:0.4rem;
+          background:#f5f9ff;border:1.5px solid #dce8f5;
+          border-radius:12px;text-decoration:none;transition:background 0.12s;">
+          ${p.foto
+            ? `<img src="${p.foto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" />`
+            : `<div style="width:36px;height:36px;border-radius:50%;background:#1a56a0;color:#fff;font-weight:800;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${p.nombre[0].toUpperCase()}</div>`
+          }
+          <div style="min-width:0;">
+            <div style="font-size:0.85rem;font-weight:700;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.nombre}</div>
+            <div style="font-size:0.7rem;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ramos.slice(0,2).join(' · ')}</div>
+            <div style="font-size:0.72rem;font-weight:700;color:#1a56a0;">$${p.precio.toLocaleString('es-CL')}/hr</div>
+          </div>
+        </a>
+      `).join('');
+    } catch (e) {
+      contenedor.innerHTML = `<div style="font-size:0.78rem;color:#bbb;text-align:center;">Error al cargar.</div>`;
+    }
+  }
+
+  cargarNotifCount();
+  iniciarHorario();
+</script>
+</body>
+</html>

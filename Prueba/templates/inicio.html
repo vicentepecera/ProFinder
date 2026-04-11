@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+{% block title %}ProFinder — Tutores PAES{% endblock %}
+{% block body_class %}inicio-page{% endblock %}
+
+{% block content %}
+
+<div class="inicio-hero">
+  <div class="inicio-hero-bg"></div>
+  <div class="inicio-hero-content">
+    <div class="inicio-chip">Preparación PAES 🎯</div>
+    <h1 class="inicio-titulo">Encuentra tu tutor<br><span>ideal para la PAES</span></h1>
+    <p class="inicio-subtitulo">
+      Conectamos estudiantes con profesores expertos en cada área de la prueba.
+      Agenda clases a tu ritmo, en los horarios que más te acomoden.
+    </p>
+    <div class="inicio-cta">
+      <a href="{% url 'tablero' %}" class="inicio-btn-primary">Buscar un profesor</a>
+      {% if not user.is_authenticated %}
+        <a href="{% url 'register_user' %}" class="inicio-btn-secondary">Crear cuenta gratis</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="inicio-hero-visual">
+    <div class="inicio-card-float card-1">
+      <div class="card-float-icon">📐</div>
+      <div class="card-float-text">
+        <span>Matemática M2</span>
+        <small>3 profesores disponibles</small>
+      </div>
+    </div>
+    <div class="inicio-card-float card-2">
+      <div class="card-float-icon">📖</div>
+      <div class="card-float-text">
+        <span>Competencia Lectora</span>
+        <small>Clases esta semana</small>
+      </div>
+    </div>
+    <div class="inicio-card-float card-3">
+      <div class="card-float-icon">⚗️</div>
+      <div class="card-float-text">
+        <span>Ciencias</span>
+        <small>Biología · Física · Química</small>
+      </div>
+    </div>
+    <div class="inicio-circulo-grande"></div>
+    <div class="inicio-circulo-chico"></div>
+  </div>
+</div>
+
+<!-- Secciones PAES -->
+<div class="inicio-secciones">
+  <div class="inicio-secciones-titulo">Cubre todas las pruebas PAES</div>
+  <div class="inicio-secciones-grid">
+    <div class="inicio-seccion-card" style="--c:#1a56a0;">
+      <div class="inicio-seccion-icon">🔢</div>
+      <div class="inicio-seccion-nombre">Matemática M1</div>
+      <div class="inicio-seccion-desc">Álgebra, geometría, probabilidad y estadística</div>
+    </div>
+    <div class="inicio-seccion-card" style="--c:#2563eb;">
+      <div class="inicio-seccion-icon">📊</div>
+      <div class="inicio-seccion-nombre">Matemática M2</div>
+      <div class="inicio-seccion-desc">Funciones avanzadas, trigonometría y logaritmos</div>
+    </div>
+    <div class="inicio-seccion-card" style="--c:#0891b2;">
+      <div class="inicio-seccion-icon">📚</div>
+      <div class="inicio-seccion-nombre">Competencia Lectora</div>
+      <div class="inicio-seccion-desc">Comprensión, análisis e interpretación de textos</div>
+    </div>
+    <div class="inicio-seccion-card" style="--c:#0d9488;">
+      <div class="inicio-seccion-icon">🏛️</div>
+      <div class="inicio-seccion-nombre">Historia</div>
+      <div class="inicio-seccion-desc">Chile, América y el mundo en perspectiva histórica</div>
+    </div>
+    <div class="inicio-seccion-card" style="--c:#16a34a;">
+      <div class="inicio-seccion-icon">🧬</div>
+      <div class="inicio-seccion-nombre">Biología</div>
+      <div class="inicio-seccion-desc">Célula, herencia, evolución y ecosistemas</div>
+    </div>
+    <div class="inicio-seccion-card" style="--c:#ca8a04;">
+      <div class="inicio-seccion-icon">⚡</div>
+      <div class="inicio-seccion-nombre">Física</div>
+      <div class="inicio-seccion-desc">Mecánica, ondas, energía y electricidad</div>
+    </div>
+    <div class="inicio-seccion-card" style="--c:#dc2626;">
+      <div class="inicio-seccion-icon">⚗️</div>
+      <div class="inicio-seccion-nombre">Química</div>
+      <div class="inicio-seccion-desc">Estructura atómica, orgánica y reacciones</div>
+    </div>
+  </div>
+</div>
+
+<!-- Cómo funciona -->
+<div class="inicio-como">
+  <div class="inicio-como-titulo">¿Cómo funciona?</div>
+  <div class="inicio-pasos">
+
+    <div class="inicio-paso">
+      <div class="inicio-paso-num">01</div>
+      <div class="inicio-paso-body">
+        <div class="inicio-paso-titulo">Elige tu área PAES</div>
+        <div class="inicio-paso-desc">
+          Selecciona la prueba y el tema específico en que necesitas refuerzo.
+          Verás todos los profesores disponibles para ese contenido.
+        </div>
+      </div>
+    </div>
+
+    <div class="inicio-paso-linea"></div>
+
+    <div class="inicio-paso">
+      <div class="inicio-paso-num">02</div>
+      <div class="inicio-paso-body">
+        <div class="inicio-paso-titulo">Elige un horario</div>
+        <div class="inicio-paso-desc">
+          Revisa la disponibilidad semanal del profesor y selecciona
+          el día y hora que más te acomode.
+        </div>
+      </div>
+    </div>
+
+    <div class="inicio-paso-linea"></div>
+
+    <div class="inicio-paso">
+      <div class="inicio-paso-num">03</div>
+      <div class="inicio-paso-body">
+        <div class="inicio-paso-titulo">El profesor confirma</div>
+        <div class="inicio-paso-desc">
+          Recibirás una notificación cuando el profesor acepte tu solicitud.
+          Una vez confirmada, tendrás acceso a sus datos de contacto.
+        </div>
+      </div>
+    </div>
+
+    <div class="inicio-paso-linea"></div>
+
+    <div class="inicio-paso">
+      <div class="inicio-paso-num">04</div>
+      <div class="inicio-paso-body">
+        <div class="inicio-paso-titulo">¡A estudiar!</div>
+        <div class="inicio-paso-desc">
+          Coordina tu clase directamente con el profesor y prepárate
+          para rendir al máximo en la PAES.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Para profesores -->
+<div class="inicio-profesores">
+  <div class="inicio-profesores-inner">
+    <div class="inicio-profesores-texto">
+      <div class="inicio-chip" style="background:rgba(255,255,255,0.15); color:#fff;">Para profesores 📚</div>
+      <h2>¿Quieres dar clases?</h2>
+      <p>
+        Regístrate como profesor, define tus ramos, tu precio por hora
+        y tu disponibilidad semanal. Los estudiantes podrán encontrarte
+        y agendar clases contigo de forma simple.
+      </p>
+      {% if not user.is_authenticated %}
+        <a href="{% url 'register_user' %}" class="inicio-btn-blanco">Registrarme como profesor</a>
+      {% else %}
+        <a href="{% url 'perfil' %}" class="inicio-btn-blanco">Ir a mi perfil</a>
+      {% endif %}
+    </div>
+    <div class="inicio-profesores-visual">
+      <div class="inicio-prof-card">
+        <div class="inicio-prof-avatar">A</div>
+        <div class="inicio-prof-info">
+          <div class="inicio-prof-nombre">Andrés M.</div>
+          <div class="inicio-prof-ramos">M1 · M2 · Física</div>
+          <div class="inicio-prof-precio">$8.000 / hr</div>
+        </div>
+      </div>
+      <div class="inicio-prof-card" style="transform:translateX(20px) translateY(-8px); opacity:0.7;">
+        <div class="inicio-prof-avatar" style="background:#0891b2;">S</div>
+        <div class="inicio-prof-info">
+          <div class="inicio-prof-nombre">Sofía R.</div>
+          <div class="inicio-prof-ramos">Biología · Química</div>
+          <div class="inicio-prof-precio">$7.500 / hr</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA final -->
+<div class="inicio-final">
+  <h2>¿Listo para mejorar tu puntaje?</h2>
+  <p>Únete a ProFinder y encuentra el apoyo que necesitas para la PAES.</p>
+  <div class="inicio-cta">
+    <a href="{% url 'tablero' %}" class="inicio-btn-primary">Ver profesores disponibles</a>
+    {% if not user.is_authenticated %}
+      <a href="{% url 'register_user' %}" class="inicio-btn-secondary">Crear cuenta</a>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+/* ── Hero ── */
+.inicio-page { background: #f0f4f8; }
+
+.inicio-hero {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  padding: 5rem 4rem;
+  gap: 4rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f2e5a 0%, #1a56a0 60%, #2563eb 100%);
+}
+
+.inicio-hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 70% 50%, rgba(37,99,235,0.3) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(8,145,178,0.2) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.inicio-hero-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  max-width: 560px;
+}
+
+.inicio-chip {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.04em;
+}
+
+.inicio-titulo {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  margin-bottom: 1.2rem;
+}
+.inicio-titulo span {
+  color: #7dd3fc;
+}
+
+.inicio-subtitulo {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.65;
+  margin-bottom: 2rem;
+  max-width: 460px;
+}
+
+.inicio-cta {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.inicio-btn-primary {
+  padding: 0.85rem 1.8rem;
+  background: #fff;
+  color: #1a56a0;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.inicio-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+}
+
+.inicio-btn-secondary {
+  padding: 0.85rem 1.8rem;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.inicio-btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Hero visual ── */
+.inicio-hero-visual {
+  position: relative;
+  flex: 1;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inicio-circulo-grande {
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  position: absolute;
+}
+
+.inicio-circulo-chico {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  position: absolute;
+}
+
+.inicio-card-float {
+  position: absolute;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  z-index: 3;
+}
+
+.card-1 { top: 10%; left: 5%; animation: flotar 3s ease-in-out infinite; }
+.card-2 { top: 45%; right: 0%; animation: flotar 3s ease-in-out infinite 1s; }
+.card-3 { bottom: 10%; left: 10%; animation: flotar 3s ease-in-out infinite 2s; }
+
+@keyframes flotar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.card-float-icon { font-size: 1.4rem; }
+.card-float-text span {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+}
+.card-float-text small {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ── Secciones PAES ── */
+.inicio-secciones {
+  padding: 5rem 4rem;
+  background: #f0f4f8;
+}
+
+.inicio-secciones-titulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.03em;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.inicio-secciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.inicio-seccion-card {
+  background: #fff;
+  border: 1.5px solid #dce8f5;
+  border-radius: 16px;
+  padding: 1.3rem 1.1rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+  border-top: 3px solid var(--c);
+}
+.inicio-seccion-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(26,86,160,0.1);
+}
+
+.inicio-seccion-icon { font-size: 1.6rem; margin-bottom: 0.6rem; }
+.inicio-seccion-nombre {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.3rem;
+}
+.inicio-seccion-desc {
+  font-size: 0.72rem;
+  color: #aaa;
+  line-height: 1.4;
+}
+
+/* ── Cómo funciona ── */
+.inicio-como {
+  padding: 5rem 4rem;
+  background: #fff;
+}
+
+.inicio-como-titulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.03em;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.inicio-pasos {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.inicio-paso {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.inicio-paso-num {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #dce8f5;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  min-width: 60px;
+  text-align: right;
+}
+
+.inicio-paso-body { padding-bottom: 0.5rem; }
+
+.inicio-paso-titulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.4rem;
+}
+
+.inicio-paso-desc {
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.inicio-paso-linea {
+  width: 2px;
+  height: 2.5rem;
+  background: linear-gradient(to bottom, #dce8f5, #f0f4f8);
+  margin-left: 44px;
+}
+
+/* ── Para profesores ── */
+.inicio-profesores {
+  background: linear-gradient(135deg, #1a56a0, #2563eb);
+  padding: 5rem 4rem;
+}
+
+.inicio-profesores-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  gap: 4rem;
+  align-items: center;
+}
+
+.inicio-profesores-texto { flex: 1; }
+.inicio-profesores-texto h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.04em;
+  margin: 0.8rem 0;
+}
+.inicio-profesores-texto p {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.65;
+  margin-bottom: 1.5rem;
+}
+
+.inicio-btn-blanco {
+  display: inline-block;
+  padding: 0.85rem 1.8rem;
+  background: #fff;
+  color: #1a56a0;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.15s;
+}
+.inicio-btn-blanco:hover { transform: translateY(-2px); }
+
+.inicio-profesores-visual {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  align-items: flex-start;
+}
+
+.inicio-prof-card {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 0.9rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 280px;
+}
+
+.inicio-prof-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: #1a56a0;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.inicio-prof-nombre {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+}
+.inicio-prof-ramos {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.6);
+  margin: 0.1rem 0;
+}
+.inicio-prof-precio {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
+/* ── CTA final ── */
+.inicio-final {
+  padding: 5rem 4rem;
+  text-align: center;
+  background: #f0f4f8;
+}
+.inicio-final h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.04em;
+  margin-bottom: 0.8rem;
+}
+.inicio-final p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+.inicio-final .inicio-cta { justify-content: center; }
+.inicio-final .inicio-btn-primary { background: #1a56a0; color: #fff; }
+.inicio-final .inicio-btn-secondary {
+  background: #fff;
+  color: #1a56a0;
+  border: 1.5px solid #dce8f5;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .inicio-hero { flex-direction: column; padding: 3rem 1.5rem; min-height: auto; }
+  .inicio-hero-visual { display: none; }
+  .inicio-secciones, .inicio-como, .inicio-profesores, .inicio-final { padding: 3rem 1.5rem; }
+  .inicio-profesores-inner { flex-direction: column; gap: 2rem; }
+  .inicio-profesores-visual { display: none; }
+}
+</style>
+
+{% endblock %}
