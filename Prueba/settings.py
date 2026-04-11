@@ -51,10 +51,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Prueba.wsgi.application'
 
-# Base de datos — PostgreSQL en producción, SQLite en desarrollo
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# Base de datos
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
-if DATABASE_URL:
+if DATABASE_URL and DATABASE_URL.startswith('postgres'):
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
