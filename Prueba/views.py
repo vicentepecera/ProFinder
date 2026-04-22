@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from Prueba.models import User, BloqueHorario, Reserva
+from Prueba.models import User, BloqueHorario, Reserva, Resena
 from categorias.models import Categoria
 import json
 
@@ -222,10 +222,8 @@ def perfil(request):
 
     # Reservas hechas (como estudiante)
     mis_clases = Reserva.objects.filter(
-        estudiante=request.user
-    ).exclude(
-        estado='confirmada',
-        fecha__lt=hoy
+        estudiante=request.user,
+        fecha__gte=hoy,
     ).select_related('profesor').order_by('fecha', 'hora')
 
     # Reservas de esta semana para pintar el horario (como profesor)
@@ -371,6 +369,24 @@ def perfil_publico(request, user_id):
 
     es_mi_perfil = request.user.is_authenticated and request.user.id == profesor.id
 
+    # Reseñas
+    resenas = Resena.objects.filter(profesor=profesor).select_related('estudiante').order_by('-creada_el')
+    total_resenas  = resenas.count()
+    puntaje_promedio = round(sum(r.puntaje for r in resenas) / total_resenas, 1) if total_resenas else None
+
+    puede_resenar = False
+    ya_reseno     = False
+    if request.user.is_authenticated and not es_mi_perfil:
+        hoy = timezone.localdate()
+        tuvo_clase = Reserva.objects.filter(
+            profesor=profesor,
+            estudiante=request.user,
+            estado='confirmada',
+            fecha__lt=hoy,
+        ).exists()
+        ya_reseno    = Resena.objects.filter(profesor=profesor, estudiante=request.user).exists()
+        puede_resenar = tuvo_clase and not ya_reseno
+
     return render(request, 'perfil_publico.html', {
         'profesor':          profesor,
         'ramos_ordenados':   ramos_ordenados,
@@ -388,6 +404,11 @@ def perfil_publico(request, user_id):
         'semana_offset':     semana_offset,
         'lunes':             lunes,
         'sabado':            sabado,
+        'resenas':           resenas,
+        'total_resenas':     total_resenas,
+        'puntaje_promedio':  puntaje_promedio,
+        'puede_resenar':     puede_resenar,
+        'ya_reseno':         ya_reseno,
     })
 
 
@@ -731,3 +752,67 @@ def recuperar_contrasena_confirmar(request, uid64, token):
     user.set_password(nueva)
     user.save()
     return render(request, 'recuperar_contrasena_confirmar.html', {'exito': True})
+
+
+@require_POST
+def dejar_resena(request, user_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'No autenticado'}, status=401)
+
+    profesor = User.objects.filter(pk=user_id).first()
+    if not profesor or profesor == request.user:
+        return JsonResponse({'error': 'Perfil no válido'}, status=400)
+
+    hoy = timezone.localdate()
+    tuvo_clase = Reserva.objects.filter(
+        profesor=profesor,
+        estudiante=request.user,
+        estado='confirmada',
+        fecha__lt=hoy,
+    ).exists()
+    if not tuvo_clase:
+        return JsonResponse({'error': 'Solo puedes reseñar a profesores con quienes tuviste clase.'}, status=403)
+
+    if Resena.objects.filter(profesor=profesor, estudiante=request.user).exists():
+        return JsonResponse({'error': 'Ya dejaste una reseña para este profesor.'}, status=400)
+
+    data       = json.loads(request.body)
+    puntaje    = int(data.get('puntaje', 0))
+    comentario = data.get('comentario', '').strip()[:500]
+
+    if not 1 <= puntaje <= 5:
+        return JsonResponse({'error': 'El puntaje debe ser entre 1 y 5.'}, status=400)
+
+    Resena.objects.create(
+        profesor=profesor,
+        estudiante=request.user,
+        puntaje=puntaje,
+        comentario=comentario,
+    )
+    return JsonResponse({'ok': True})
+
+
+def historial(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect('/login')
+
+    hoy = timezone.localdate()
+
+    historial_clases = Reserva.objects.filter(
+        estudiante=request.user,
+        estado='confirmada',
+        fecha__lt=hoy,
+    ).select_related('profesor').order_by('-fecha', '-hora')
+
+    historial_profesores_ids = list(historial_clases.values_list('profesor_id', flat=True).distinct())
+    historial_profesores = User.objects.filter(pk__in=historial_profesores_ids)
+
+    resenas_hechas_ids = set(
+        Resena.objects.filter(estudiante=request.user).values_list('profesor_id', flat=True)
+    )
+
+    return render(request, 'historial.html', {
+        'historial_clases':     historial_clases,
+        'historial_profesores': historial_profesores,
+        'resenas_hechas_ids':   resenas_hechas_ids,
+    })

@@ -98,6 +98,20 @@ class Reserva(models.Model):
     def __str__(self):
         return f"{self.estudiante.username} → {self.profesor.username} {self.fecha} {self.hora}"
 
+class Resena(models.Model):
+    profesor   = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resenas_recibidas')
+    estudiante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resenas_hechas')
+    puntaje    = models.IntegerField()
+    comentario = models.TextField(blank=True, default='')
+    creada_el  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('profesor', 'estudiante')
+
+    def __str__(self):
+        return f"{self.estudiante.username} → {self.profesor.username} ({self.puntaje}★)"
+
+
 class Notificacion(models.Model):
     TIPOS = [
         ('reserva_creada', 'Reserva creada'),

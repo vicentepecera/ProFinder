@@ -393,6 +393,7 @@
         {% endif %}
       </div>
 
+
       <div class="perfil-acciones">
         <a href="{% url 'logout' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:block;">
           Cerrar sesión
@@ -630,17 +631,20 @@
   setTimeout(() => {
     const grid = document.getElementById('horario-grid');
     if (!grid) return;
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
 
     reservasData.forEach(clave => {
       const [dia, hora] = clave.split('_');
       const b = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
-      if (b) { b.style.background = '#e74c3c'; b.style.borderColor = '#c0392b'; b.dataset.ocupado = 'true'; }
+      if (!b || (b.dataset.fecha && new Date(b.dataset.fecha + 'T00:00:00') < hoy)) return;
+      b.style.background = '#e74c3c'; b.style.borderColor = '#c0392b'; b.dataset.ocupado = 'true';
     });
 
     pendientesData.forEach(clave => {
       const [dia, hora] = clave.split('_');
       const b = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
-      if (b) { b.style.background = '#f39c12'; b.style.borderColor = '#d68910'; b.dataset.ocupado = 'true'; }
+      if (!b || (b.dataset.fecha && new Date(b.dataset.fecha + 'T00:00:00') < hoy)) return;
+      b.style.background = '#f39c12'; b.style.borderColor = '#d68910'; b.dataset.ocupado = 'true';
     });
   }, 150);
 
@@ -650,22 +654,22 @@
   setTimeout(() => {
     const gridEst = document.getElementById('horario-grid-est');
     if (!gridEst) return;
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
 
     misReservasData.forEach(r => {
       const b = gridEst.querySelector(`.horario-bloque[data-dia="${r.dia}"][data-hora="${r.hora}"]`);
-      if (b) {
-        if (r.estado === 'confirmada') {
-          b.style.background  = '#1a56a0';
-          b.style.borderColor = '#134488';
-        } else if (r.estado === 'pendiente') {
-          b.style.background  = '#f39c12';
-          b.style.borderColor = '#d68910';
-        }
+      if (!b || (b.dataset.fecha && new Date(b.dataset.fecha + 'T00:00:00') < hoy)) return;
+      if (r.estado === 'confirmada') {
+        b.style.background  = '#1a56a0';
+        b.style.borderColor = '#134488';
+      } else if (r.estado === 'pendiente') {
+        b.style.background  = '#f39c12';
+        b.style.borderColor = '#d68910';
       }
     });
   }, 150);
 
-  setTimeout(() => {
+  function aplicarDiasPasados() {
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     document.querySelectorAll('.horario-grid').forEach(grid => {
       const diasPasados = new Set();
@@ -680,8 +684,10 @@
       grid.querySelectorAll('.horario-dia').forEach(h => {
         const s = h.querySelector('span:first-child');
         if (s && diasPasados.has(s.textContent.trim())) h.style.opacity = '0.35';
+        else h.style.opacity = '';
       });
     });
-  }, 200);
+  }
+
 </script>
 {% endblock %}

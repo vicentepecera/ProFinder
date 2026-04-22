@@ -69,6 +69,63 @@
       </div>
     </div>
 
+    <!-- Reseñas -->
+    <div class="perfil-datos">
+      <div class="perfil-seccion-titulo" style="padding:0.8rem 1.1rem 0.4rem; display:flex; justify-content:space-between; align-items:center;">
+        Reseñas
+        {% if puntaje_promedio %}
+          <span style="font-size:0.85rem; color:#f5a623; font-weight:700;">
+            {{ puntaje_promedio }} ★ <span style="color:#aaa; font-weight:400;">({{ total_resenas }})</span>
+          </span>
+        {% endif %}
+      </div>
+
+      {% if puede_resenar %}
+      <div style="padding:0.8rem 1.1rem;" id="form-resena">
+        <p style="font-size:0.78rem; color:#555; margin-bottom:0.6rem;">Tuviste clase con este profesor. ¿Cómo fue?</p>
+        <div style="display:flex; gap:0.3rem; margin-bottom:0.6rem;" id="estrellas">
+          {% for i in "12345" %}
+            <span data-val="{{ i }}" onclick="seleccionarEstrella({{ i }})"
+              style="font-size:1.6rem; cursor:pointer; color:#ddd; transition:color 0.15s;">★</span>
+          {% endfor %}
+        </div>
+        <textarea id="comentario-resena" maxlength="500" placeholder="Comentario opcional..."
+          style="width:100%; padding:0.55rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.82rem; font-family:inherit; resize:vertical; min-height:60px; outline:none; box-sizing:border-box;"></textarea>
+        <button onclick="enviarResena()" id="btn-resena"
+          style="margin-top:0.5rem; width:100%; padding:0.5rem; background:#1a56a0; color:#fff; border:none; border-radius:10px; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit;">
+          Enviar reseña
+        </button>
+      </div>
+      {% elif ya_reseno %}
+      <div style="padding:0.6rem 1.1rem 0.8rem; font-size:0.78rem; color:#aaa; text-align:center;">
+        Ya dejaste tu reseña.
+      </div>
+      {% endif %}
+
+      {% for r in resenas %}
+      <div style="padding:0.8rem 1.1rem; border-top:1px solid #eef4fd;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            {% if r.estudiante.foto %}
+              <img src="{{ r.estudiante.foto }}" style="width:26px; height:26px; border-radius:50%; object-fit:cover;" />
+            {% else %}
+              <div style="width:26px; height:26px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:#1a56a0;">{{ r.estudiante.username|first|upper }}</div>
+            {% endif %}
+            <span style="font-size:0.82rem; font-weight:600; color:#1a1a1a;">{{ r.estudiante.apodo|default:r.estudiante.username }}</span>
+          </div>
+          <span style="color:#f5a623; font-size:0.85rem;">{% for i in "12345" %}{% if forloop.counter <= r.puntaje %}★{% else %}☆{% endif %}{% endfor %}</span>
+        </div>
+        {% if r.comentario %}
+          <p style="font-size:0.78rem; color:#555; margin:0;">{{ r.comentario }}</p>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div style="padding:0.7rem 1.1rem 1rem; text-align:center;">
+        <p style="font-size:0.78rem; color:#bbb;">Sin reseñas aún.</p>
+      </div>
+      {% endfor %}
+    </div>
+
     </div>
 
     <!-- COLUMNA DERECHA -->
@@ -217,26 +274,26 @@
   let modoAgendando   = false;
 
   setTimeout(() => {
-    // Pintar todas las reservas en rojo
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+    // Pintar todas las reservas en rojo (solo días no pasados)
     reservas.forEach(clave => {
       const [dia, hora] = clave.split('_');
       const b = document.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
-      if (b) {
-        b.style.background  = '#e74c3c';
-        b.style.borderColor = '#c0392b';
-        b.dataset.reservado = 'true';
-      }
+      if (!b || (b.dataset.fecha && new Date(b.dataset.fecha + 'T00:00:00') < hoy)) return;
+      b.style.background  = '#e74c3c';
+      b.style.borderColor = '#c0392b';
+      b.dataset.reservado = 'true';
     });
 
-    // Sobreescribir en azul las que son mías
+    // Sobreescribir en azul las que son mías (solo días no pasados)
     misReservas.forEach(clave => {
       const [dia, hora] = clave.split('_');
       const b = document.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
-      if (b) {
-        b.style.background  = '#1a56a0';
-        b.style.borderColor = '#134488';
-        b.dataset.reservado = 'true';
-      }
+      if (!b || (b.dataset.fecha && new Date(b.dataset.fecha + 'T00:00:00') < hoy)) return;
+      b.style.background  = '#1a56a0';
+      b.style.borderColor = '#134488';
+      b.dataset.reservado = 'true';
     });
 
     // Marcar disponibles
@@ -248,7 +305,7 @@
     });
   }, 150);
 
-  setTimeout(() => {
+  function aplicarDiasPasados() {
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     const diasPasados = new Set();
     document.querySelectorAll('.horario-bloque[data-fecha]').forEach(b => {
@@ -264,7 +321,7 @@
       const s = h.querySelector('span:first-child');
       if (s && diasPasados.has(s.textContent.trim())) h.style.opacity = '0.35';
     });
-  }, 200);
+  }
 
   // Un solo listener global que nunca se bloquea
   document.addEventListener('click', e => {
@@ -349,7 +406,28 @@
       alert(data.error || 'Error al agendar.');
     }
   }
-  
+
+  let estrellasSeleccionadas = 0;
+  function seleccionarEstrella(val) {
+    estrellasSeleccionadas = val;
+    document.querySelectorAll('#estrellas span').forEach(s => {
+      s.style.color = parseInt(s.dataset.val) <= val ? '#f5a623' : '#ddd';
+    });
+  }
+
+  async function enviarResena() {
+    if (!estrellasSeleccionadas) { alert('Selecciona un puntaje.'); return; }
+    const csrf      = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    const comentario = document.getElementById('comentario-resena').value.trim();
+    const res = await fetch(`/resenar/${profesorId}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ puntaje: estrellasSeleccionadas, comentario }),
+    });
+    if (res.ok) { location.reload(); }
+    else { const d = await res.json(); alert(d.error || 'Error al enviar reseña.'); }
+  }
+
 </script>
 
 <script id="pendientes-data" type="application/json">{{ pendientes|safe }}</script>

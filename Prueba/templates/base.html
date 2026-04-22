@@ -61,16 +61,12 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Notificaciones
       </a>
-    </div>
-
-    <!-- Mis profesores -->
-    <div style="flex:1; overflow-y:auto; padding:1rem 1.2rem;">
-      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:0.8rem;">
-        Mis profesores
-      </div>
-      <div id="sidebar-profesores">
-        <div style="font-size:0.8rem;color:#bbb;text-align:center;padding:1rem 0;">Cargando...</div>
-      </div>
+      {% if user.is_authenticated and user.rol != 'profesor' %}
+      <a href="{% url 'historial' %}" style="display:flex;align-items:center;gap:0.8rem;padding:0.75rem 1.2rem;font-size:0.88rem;font-weight:600;color:#1a1a1a;text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Historial
+      </a>
+      {% endif %}
     </div>
 
     <!-- Cerrar sesión -->
@@ -210,14 +206,16 @@
 
   function iniciarHorario() {
     const grid = document.getElementById('horario-grid');
-    if (!grid) return;
-    grid.querySelectorAll('.horario-bloque').forEach(b => { b.classList.add('bloqueado'); pintarGris(b); });
-    horarioGuardado.forEach(clave => {
-      const [dia, hora] = clave.split('_');
-      const bloque = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
-      if (bloque) { bloque.classList.add('disponible'); pintarVerde(bloque); }
-    });
-    actualizarTodosLosChecks();
+    if (grid) {
+      grid.querySelectorAll('.horario-bloque').forEach(b => { b.classList.add('bloqueado'); pintarGris(b); });
+      horarioGuardado.forEach(clave => {
+        const [dia, hora] = clave.split('_');
+        const bloque = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+        if (bloque) { bloque.classList.add('disponible'); pintarVerde(bloque); }
+      });
+      actualizarTodosLosChecks();
+    }
+    if (typeof aplicarDiasPasados === 'function') aplicarDiasPasados();
   }
 
   function toggleBloque(el) {
@@ -285,6 +283,7 @@
       }
     }
     desactivarEdicion();
+    if (typeof aplicarDiasPasados === 'function') aplicarDiasPasados();
   }
 
   function obtenerBloques() {

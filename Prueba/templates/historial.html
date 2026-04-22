@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Historial — ProFinder{% endblock %}
+{% block body_class %}perfil-page{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="max-width:720px; margin:0 auto;">
+
+      <!-- Tabs -->
+      <div style="display:flex; gap:0; border-bottom:2px solid #dce8f5; margin-bottom:1.2rem;">
+        <button id="tab-profesores" onclick="mostrarTab('profesores')"
+          style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid #1a56a0; font-size:0.85rem; font-weight:700; color:#1a56a0; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+          Mis profesores
+        </button>
+        <button id="tab-clases" onclick="mostrarTab('clases')"
+          style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid transparent; font-size:0.85rem; font-weight:700; color:#aaa; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+          Mis clases
+        </button>
+      </div>
+
+      <!-- Panel: Mis profesores -->
+      <div id="panel-profesores">
+        {% if historial_profesores %}
+          <div style="background:#fff; border:1.5px solid #dce8f5; border-radius:14px; overflow:hidden;">
+            {% for prof in historial_profesores %}
+            <a href="{% url 'perfil_publico' prof.id %}"
+              style="text-decoration:none; display:flex; align-items:center; gap:0.9rem; padding:0.85rem 1.1rem; border-bottom:1px solid #eef4fd; transition:background 0.15s;"
+              onmouseover="this.style.background='#f5f9ff'" onmouseout="this.style.background=''">
+              {% if prof.foto %}
+                <img src="{{ prof.foto }}" style="width:44px; height:44px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+              {% else %}
+                <div style="width:44px; height:44px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:700; color:#1a56a0; flex-shrink:0;">
+                  {{ prof.username|first|upper }}
+                </div>
+              {% endif %}
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:0.9rem; font-weight:700; color:#1a1a1a;">{{ prof.apodo|default:prof.username }}</div>
+                <div style="font-size:0.72rem; color:#aaa;">@{{ prof.username }}</div>
+              </div>
+              {% if prof.id in resenas_hechas_ids %}
+                <span style="font-size:0.7rem; background:#eef4fd; color:#1a56a0; border-radius:6px; padding:0.2rem 0.6rem; font-weight:700; white-space:nowrap;">★ Reseñado</span>
+              {% else %}
+                <span style="font-size:0.7rem; background:#fff8ec; color:#d68910; border-radius:6px; padding:0.2rem 0.6rem; font-weight:700; white-space:nowrap;">Sin reseña</span>
+              {% endif %}
+            </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="padding:3rem; text-align:center;">
+            <p style="font-size:0.85rem; color:#bbb;">No tienes profesores en tu historial aún.</p>
+            <a href="{% url 'tablero' %}" class="btn-submit" style="display:inline-block; text-decoration:none; margin-top:1rem; padding:0.7rem 2rem; width:auto;">
+              Buscar un profesor
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Panel: Mis clases -->
+      <div id="panel-clases" style="display:none;">
+        {% if historial_clases %}
+          <div style="background:#fff; border:1.5px solid #dce8f5; border-radius:14px; overflow:hidden;">
+            {% for r in historial_clases %}
+            <div style="display:flex; align-items:center; gap:1rem; padding:0.85rem 1.1rem; border-bottom:1px solid #eef4fd;">
+              <div style="min-width:90px;">
+                <div style="font-size:0.88rem; font-weight:700; color:#1a1a1a;">{{ r.fecha|date:"d/m/Y" }}</div>
+                <div style="font-size:0.75rem; color:#aaa;">{{ r.dia }} {{ r.hora }}</div>
+              </div>
+              <a href="{% url 'perfil_publico' r.profesor.id %}" style="flex:1; display:flex; align-items:center; gap:0.6rem; text-decoration:none; min-width:0;">
+                {% if r.profesor.foto %}
+                  <img src="{{ r.profesor.foto }}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+                {% else %}
+                  <div style="width:32px; height:32px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:0.82rem; font-weight:700; color:#1a56a0; flex-shrink:0;">
+                    {{ r.profesor.username|first|upper }}
+                  </div>
+                {% endif %}
+                <span style="font-size:0.82rem; font-weight:600; color:#1a1a1a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  {{ r.profesor.apodo|default:r.profesor.username }}
+                </span>
+              </a>
+              {% if r.profesor.id in resenas_hechas_ids %}
+                <span style="font-size:0.72rem; color:#aaa; white-space:nowrap;">★ Reseñado</span>
+              {% else %}
+                <a href="{% url 'perfil_publico' r.profesor.id %}"
+                  style="font-size:0.72rem; background:#1a56a0; color:#fff; border-radius:8px; padding:0.3rem 0.7rem; font-weight:700; text-decoration:none; white-space:nowrap;">
+                  Reseñar
+                </a>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="padding:3rem; text-align:center;">
+            <p style="font-size:0.85rem; color:#bbb;">No tienes clases pasadas aún.</p>
+          </div>
+        {% endif %}
+      </div>
+
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  function mostrarTab(tab) {
+    const esProfesores = tab === 'profesores';
+    document.getElementById('panel-profesores').style.display = esProfesores ? 'block' : 'none';
+    document.getElementById('panel-clases').style.display     = esProfesores ? 'none'  : 'block';
+    document.getElementById('tab-profesores').style.color              = esProfesores ? '#1a56a0' : '#aaa';
+    document.getElementById('tab-profesores').style.borderBottomColor  = esProfesores ? '#1a56a0' : 'transparent';
+    document.getElementById('tab-clases').style.color                  = esProfesores ? '#aaa' : '#1a56a0';
+    document.getElementById('tab-clases').style.borderBottomColor      = esProfesores ? 'transparent' : '#1a56a0';
+  }
+</script>
+{% endblock %}
+{% endblock %}
