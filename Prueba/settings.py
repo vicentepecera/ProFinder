@@ -92,3 +92,8 @@ SESSION_ENGINE      = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE  = not DEBUG
+
+# Resend
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+RESEND_FROM    = os.environ.get('RESEND_FROM', 'ProFinder <noreply@profinder.software>')
+SITE_URL       = os.environ.get('SITE_URL', 'https://profinder.software')

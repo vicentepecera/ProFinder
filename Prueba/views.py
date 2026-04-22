@@ -147,6 +147,12 @@ def register_user(request):
         if rol == 'profesor' and ramos_ids:
             user.ramos.set(Ramo.objects.filter(id__in=ramos_ids))
 
+        try:
+            from Prueba.email_utils import enviar_bienvenida
+            enviar_bienvenida(user)
+        except Exception:
+            pass
+
         login(request, user)
         return HttpResponseRedirect('/tablero')
 
@@ -656,3 +662,59 @@ def subir_foto(request):
     request.user.foto = foto
     request.user.save()
     return JsonResponse({'url': request.user.foto.url})
+
+
+def recuperar_contrasena(request):
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.encoding import force_bytes
+    from django.utils.http import urlsafe_base64_encode
+    from Prueba.email_utils import enviar_recuperacion
+
+    if request.method == 'GET':
+        return render(request, 'recuperar_contrasena.html', {})
+
+    email = request.POST.get('email', '').strip()
+    user  = User.objects.filter(email=email).first()
+    if user:
+        uid   = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        try:
+            enviar_recuperacion(user, token, uid)
+        except Exception:
+            pass
+    # Siempre muestra la misma pantalla para no revelar si el email existe
+    return render(request, 'recuperar_contrasena.html', {'enviado': True})
+
+
+def recuperar_contrasena_confirmar(request, uid64, token):
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.encoding import force_str
+    from django.utils.http import urlsafe_base64_decode
+
+    try:
+        uid  = force_str(urlsafe_base64_decode(uid64))
+        user = User.objects.get(pk=uid)
+    except (User.DoesNotExist, ValueError, OverflowError):
+        user = None
+
+    token_valido = user is not None and default_token_generator.check_token(user, token)
+
+    if request.method == 'GET':
+        return render(request, 'recuperar_contrasena_confirmar.html', {'valido': token_valido})
+
+    if not token_valido:
+        return render(request, 'recuperar_contrasena_confirmar.html', {'valido': False})
+
+    nueva = request.POST.get('password', '')
+    confirmar = request.POST.get('password2', '')
+    if len(nueva) < 8:
+        return render(request, 'recuperar_contrasena_confirmar.html', {
+            'valido': True, 'error': 'La contraseña debe tener al menos 8 caracteres.'
+        })
+    if nueva != confirmar:
+        return render(request, 'recuperar_contrasena_confirmar.html', {
+            'valido': True, 'error': 'Las contraseñas no coinciden.'
+        })
+    user.set_password(nueva)
+    user.save()
+    return render(request, 'recuperar_contrasena_confirmar.html', {'exito': True})

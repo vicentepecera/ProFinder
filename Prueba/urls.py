@@ -39,5 +39,7 @@ urlpatterns = [
     path('mis-profesores/', views.mis_profesores, name='mis_profesores'),
     path('admin-usuarios/', views.admin_usuarios, name='admin_usuarios'),
     path('subir-foto/', views.subir_foto, name='subir_foto'),
+    path('recuperar-contrasena/', views.recuperar_contrasena, name='recuperar_contrasena'),
+    path('recuperar-contrasena/<uid64>/<token>/', views.recuperar_contrasena_confirmar, name='recuperar_contrasena_confirmar'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
