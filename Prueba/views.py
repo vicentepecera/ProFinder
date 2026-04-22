@@ -550,6 +550,39 @@ def notificaciones_count(request):
 def inicio(request):
     return render(request, 'inicio.html')
 
+def admin_usuarios(request):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return HttpResponseRedirect('/login')
+
+    rol_filtro  = request.GET.get('rol', '')
+    tipo_filtro = request.GET.get('tipo', '')
+    busqueda    = request.GET.get('q', '').strip()
+
+    usuarios = User.objects.all().order_by('-date_joined')
+
+    if rol_filtro:
+        usuarios = usuarios.filter(rol=rol_filtro)
+    if tipo_filtro:
+        usuarios = usuarios.filter(tipo=tipo_filtro)
+    if busqueda:
+        from django.db.models import Q
+        usuarios = usuarios.filter(
+            Q(username__icontains=busqueda) |
+            Q(apodo__icontains=busqueda) |
+            Q(email__icontains=busqueda)
+        )
+
+    return render(request, 'admin_usuarios.html', {
+        'usuarios':    usuarios,
+        'rol_filtro':  rol_filtro,
+        'tipo_filtro': tipo_filtro,
+        'busqueda':    busqueda,
+        'total':       User.objects.count(),
+        'total_prof':  User.objects.filter(rol='profesor').count(),
+        'total_est':   User.objects.filter(rol='estudiante').count(),
+    })
+
+
 def mis_profesores(request):
     if not request.user.is_authenticated:
         return JsonResponse({'profesores': []})

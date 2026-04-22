@@ -37,5 +37,6 @@ urlpatterns = [
     path('notificaciones/', views.notificaciones, name='notificaciones'),
     path('notificaciones/count/', views.notificaciones_count, name='notificaciones_count'),
     path('mis-profesores/', views.mis_profesores, name='mis_profesores'),
+    path('admin-usuarios/', views.admin_usuarios, name='admin_usuarios'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
