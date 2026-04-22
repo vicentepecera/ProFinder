@@ -200,22 +200,24 @@
 {% endblock %}
 
 {% block extra_js %}
-<script id="horario-data"  type="application/json">{{ horario_guardado|safe }}</script>
-<script id="reservas-data" type="application/json">{{ reservas|safe }}</script>
-<script id="profesor-id"   type="application/json">{{ profesor_id }}</script>
-<script id="es-mi-perfil"  type="application/json">{{ es_mi_perfil|yesno:"true,false" }}</script>
-<script id="autenticado"   type="application/json">{{ request.user.is_authenticated|yesno:"true,false" }}</script>
+<script id="horario-data"      type="application/json">{{ horario_guardado|safe }}</script>
+<script id="reservas-data"     type="application/json">{{ reservas|safe }}</script>
+<script id="mis-reservas-data" type="application/json">{{ mis_reservas_grid_json|safe }}</script>
+<script id="profesor-id"       type="application/json">{{ profesor_id }}</script>
+<script id="es-mi-perfil"      type="application/json">{{ es_mi_perfil|yesno:"true,false" }}</script>
+<script id="autenticado"       type="application/json">{{ request.user.is_authenticated|yesno:"true,false" }}</script>
 
 <script>
-  const reservas     = JSON.parse(document.getElementById('reservas-data').textContent);
-  const profesorId   = JSON.parse(document.getElementById('profesor-id').textContent);
-  const esMiPerfil   = JSON.parse(document.getElementById('es-mi-perfil').textContent);
-  const autenticado  = JSON.parse(document.getElementById('autenticado').textContent);
-  let bloqueElegido  = null;
-  let modoAgendando  = false;
+  const reservas      = JSON.parse(document.getElementById('reservas-data').textContent);
+  const misReservas   = JSON.parse(document.getElementById('mis-reservas-data').textContent);
+  const profesorId    = JSON.parse(document.getElementById('profesor-id').textContent);
+  const esMiPerfil    = JSON.parse(document.getElementById('es-mi-perfil').textContent);
+  const autenticado   = JSON.parse(document.getElementById('autenticado').textContent);
+  let bloqueElegido   = null;
+  let modoAgendando   = false;
 
   setTimeout(() => {
-    // Pintar reservas en rojo
+    // Pintar todas las reservas en rojo
     reservas.forEach(clave => {
       const [dia, hora] = clave.split('_');
       const b = document.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
@@ -226,15 +228,43 @@
       }
     });
 
+    // Sobreescribir en azul las que son mías
+    misReservas.forEach(clave => {
+      const [dia, hora] = clave.split('_');
+      const b = document.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+      if (b) {
+        b.style.background  = '#1a56a0';
+        b.style.borderColor = '#134488';
+        b.dataset.reservado = 'true';
+      }
+    });
+
     // Marcar disponibles
     document.querySelectorAll('.horario-bloque').forEach(b => {
       const bg = window.getComputedStyle(b).backgroundColor;
-      // verde = rgb(42, 169, 38)
       if (b.style.background === '#2aa926' || bg === 'rgb(42, 169, 38)') {
         b.dataset.disponible = 'true';
       }
     });
   }, 150);
+
+  setTimeout(() => {
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const diasPasados = new Set();
+    document.querySelectorAll('.horario-bloque[data-fecha]').forEach(b => {
+      if (new Date(b.dataset.fecha + 'T00:00:00') < hoy) {
+        diasPasados.add(b.dataset.dia);
+        b.style.background    = '#f0f0f0';
+        b.style.borderColor   = '#e0e0e0';
+        b.style.pointerEvents = 'none';
+        b.removeAttribute('data-disponible');
+      }
+    });
+    document.querySelectorAll('.horario-dia').forEach(h => {
+      const s = h.querySelector('span:first-child');
+      if (s && diasPasados.has(s.textContent.trim())) h.style.opacity = '0.35';
+    });
+  }, 200);
 
   // Un solo listener global que nunca se bloquea
   document.addEventListener('click', e => {

@@ -331,8 +331,9 @@ def perfil_publico(request, user_id):
         f"{r.dia}_{r.hora}" for r in reservas_semana if r.estado == 'pendiente'
     ])
 
-    mis_reservas     = []
-    tiene_confirmada = False
+    mis_reservas          = []
+    mis_reservas_grid_json = json.dumps([])
+    tiene_confirmada      = False
     if request.user.is_authenticated:
         hoy = timezone.localdate()
         qs = Reserva.objects.filter(
@@ -348,6 +349,13 @@ def perfil_publico(request, user_id):
             r['fecha_display'] = r['fecha'].strftime('%d/%m/%Y') if r['fecha'] else '—'
 
         tiene_confirmada = any(r['estado'] == 'confirmada' for r in mis_reservas)
+
+        mis_reservas_grid_json = json.dumps([
+            f"{r['dia']}_{r['hora']}"
+            for r in mis_reservas
+            if r['estado'] == 'confirmada'
+            and r['fecha'] in fechas_semana.values()
+        ])
 
     ORDEN_DEPTOS = [
         'M1', 'M2', 'Competencia Lectora', 'Historia y Cs. Sociales',
@@ -369,9 +377,10 @@ def perfil_publico(request, user_id):
         'horas':             horas,
         'dias':              dias,
         'horario_guardado':  horario,
-        'reservas':          reservas_json,
-        'pendientes':        pendientes_json,
-        'mis_reservas':      mis_reservas,
+        'reservas':               reservas_json,
+        'pendientes':             pendientes_json,
+        'mis_reservas':           mis_reservas,
+        'mis_reservas_grid_json': mis_reservas_grid_json,
         'tiene_confirmada':  tiene_confirmada,
         'es_mi_perfil':      es_mi_perfil,
         'profesor_id':       profesor.id,

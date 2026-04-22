@@ -432,7 +432,7 @@
             <a href="?semana={{ semana_offset|add:'1' }}"
               style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">Siguiente →</a>
           </div>
-          <p class="horario-sub">Verde: disponible — Amarillo: pendiente — Rojo: confirmada.</p>
+          <p class="horario-sub">Amarillo: pendiente — Azul: confirmada.</p>
         </div>
 
         <div class="horario-grid" id="horario-grid-est">
@@ -655,8 +655,8 @@
       const b = gridEst.querySelector(`.horario-bloque[data-dia="${r.dia}"][data-hora="${r.hora}"]`);
       if (b) {
         if (r.estado === 'confirmada') {
-          b.style.background  = '#e74c3c';
-          b.style.borderColor = '#c0392b';
+          b.style.background  = '#1a56a0';
+          b.style.borderColor = '#134488';
         } else if (r.estado === 'pendiente') {
           b.style.background  = '#f39c12';
           b.style.borderColor = '#d68910';
@@ -664,5 +664,24 @@
       }
     });
   }, 150);
+
+  setTimeout(() => {
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    document.querySelectorAll('.horario-grid').forEach(grid => {
+      const diasPasados = new Set();
+      grid.querySelectorAll('.horario-bloque[data-fecha]').forEach(b => {
+        if (new Date(b.dataset.fecha + 'T00:00:00') < hoy) {
+          diasPasados.add(b.dataset.dia);
+          b.style.background    = '#f0f0f0';
+          b.style.borderColor   = '#e0e0e0';
+          b.style.pointerEvents = 'none';
+        }
+      });
+      grid.querySelectorAll('.horario-dia').forEach(h => {
+        const s = h.querySelector('span:first-child');
+        if (s && diasPasados.has(s.textContent.trim())) h.style.opacity = '0.35';
+      });
+    });
+  }, 200);
 </script>
 {% endblock %}
