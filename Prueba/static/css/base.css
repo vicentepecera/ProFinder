@@ -105,7 +105,9 @@ body {
 .depto-carta.activa .depto-nombre { color: #fff; }
 .depto-carta.activa .depto-sub    { color: rgba(255,255,255,0.7); }
 
-.depto-icono  { font-size: 2rem; margin-bottom: 0.75rem; line-height: 1; }
+.depto-icono  { width: 2rem; height: 2rem; margin: 0 auto 0.75rem; color: #1a56a0; display: flex; align-items: center; justify-content: center; }
+.depto-icono svg { width: 100%; height: 100%; }
+.depto-carta.activa .depto-icono { color: #fff; }
 .depto-nombre { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; color: #1a1a1a; }
 .depto-sub    { font-size: 0.78rem; color: #aaa; margin-top: 0.25rem; }
 
@@ -251,12 +253,12 @@ body.login-page { display: flex; flex-direction: column; }
 .field input:focus { border-color: #1a56a0; background: #fff; }
 
 .error-msg {
-  background: #eef4fd;
-  border: 1.5px solid #b3cff0;
+  background: #fff0f0;
+  border: 1.5px solid #e53e3e;
   border-radius: 10px;
   padding: 0.65rem 0.9rem;
   font-size: 0.82rem;
-  color: #1a56a0;
+  color: #c53030;
   margin-bottom: 1.2rem;
 }
 

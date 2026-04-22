@@ -161,7 +161,7 @@ def login_user(request):
             login(request, usuario)
             return HttpResponseRedirect('/tablero')
         else:
-            return HttpResponseRedirect('/register')
+            return render(request, "login.html", {'error': True})
 
 
 def logout_user(request):

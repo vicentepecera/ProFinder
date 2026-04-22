@@ -18,8 +18,8 @@
     <h2>Bienvenido de vuelta</h2>
     <p class="subtitulo">Ingresa tus credenciales para continuar</p>
 
-    {% if form.errors %}
-    <div class="error-msg">Usuario o contraseña incorrectos. Intenta de nuevo.</div>
+    {% if error %}
+    <div class="error-msg">El correo o la contraseña son incorrectos. Intenta de nuevo.</div>
     {% endif %}
 
     <form method="post">
