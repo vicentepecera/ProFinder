@@ -176,7 +176,7 @@
             </div>
             <div style="font-size:0.83rem; color:#1a1a1a; display:flex; flex-direction:column; gap:0.3rem;">
               <span><span style="color:#aaa; font-weight:600;">Correo:</span> {{ profesor.email|default:"No especificado" }}</span>
-              <span><span style="color:#aaa; font-weight:600;">Teléfono:</span> {{ profesor.telefono|default:"No especificado" }}</span>
+              <span><span style="color:#aaa; font-weight:600;">Teléfono:</span> {{ profesor.telefono|formato_telefono }}</span>
             </div>
           </div>
         {% else %}

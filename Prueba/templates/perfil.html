@@ -13,11 +13,18 @@
     <div class="perfil-izq">
 
       <div class="perfil-card">
-        {% if user.foto %}
-          <img src="{{ user.foto.url }}" alt="{{ user.username }}" class="perfil-foto" />
-        {% else %}
-          <div class="perfil-foto-placeholder">{{ user.username|first|upper }}</div>
-        {% endif %}
+        <div onclick="document.getElementById('foto-input').click()" title="Cambiar foto"
+          style="position:relative; cursor:pointer; display:inline-block;">
+          {% if user.foto %}
+            <img id="foto-preview" src="{{ user.foto.url }}" alt="{{ user.username }}" class="perfil-foto" />
+          {% else %}
+            <div id="foto-preview" class="perfil-foto-placeholder">{{ user.username|first|upper }}</div>
+          {% endif %}
+          <div style="position:absolute; bottom:0; right:0; background:#1a56a0; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z"/></svg>
+          </div>
+        </div>
+        <input type="file" id="foto-input" accept="image/*" style="display:none;" onchange="subirFoto(this)">
         <div class="perfil-info">
           <h2 class="perfil-nombre">{{ user.apodo|default:user.username }}</h2>
           <p class="perfil-username">@{{ user.username }}</p>
@@ -42,7 +49,7 @@
           </div>
           <div class="perfil-fila">
             <span class="perfil-label">Teléfono</span>
-            <span class="perfil-valor" id="telefono-display">{{ user.telefono|default:"No especificado" }}</span>
+            <span class="perfil-valor" id="telefono-display">{{ user.telefono|formato_telefono }}</span>
           </div>
           <div class="perfil-fila">
             <span class="perfil-label">{% if user.tipo == 'estudiante' %}Carrera{% else %}Ocupación{% endif %}</span>
@@ -122,9 +129,19 @@
           </div>
         </div>
         <div id="ramos-ver">
-          <div class="perfil-ramos-lista" id="ramos-display">
-            {% for ramo in user.ramos.all %}
-              <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
+          <div style="padding:0.5rem 1.1rem 0.2rem;">
+            {% regroup user.ramos.all by depto as mis_ramos_agrupados %}
+            {% for grupo in mis_ramos_agrupados %}
+              <details style="margin-bottom:0.4rem;" open>
+                <summary style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#aaa; cursor:pointer; list-style:none; display:flex; align-items:center; gap:0.4rem; padding:0.25rem 0; user-select:none;">
+                  {{ grupo.grouper }}
+                </summary>
+                <div style="display:flex; flex-wrap:wrap; gap:0.35rem; padding:0.4rem 0 0.3rem 0.6rem;">
+                  {% for ramo in grupo.list %}
+                    <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
+                  {% endfor %}
+                </div>
+              </details>
             {% empty %}
               <p style="font-size:0.78rem; color:#bbb; padding:0.5rem 0;">Sin ramos asignados.</p>
             {% endfor %}
@@ -176,6 +193,21 @@
 
     <!-- COLUMNA DERECHA PROFESOR: Horario -->
     <div class="perfil-der">
+
+      <!-- Tabs -->
+      <div style="display:flex; gap:0; border-bottom:2px solid #dce8f5; margin-bottom:1.2rem;">
+        <button id="tab-horario" onclick="mostrarTabProf('horario')"
+          style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid #1a56a0; font-size:0.85rem; font-weight:700; color:#1a56a0; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+          Mi horario
+        </button>
+        <button id="tab-estudiantes" onclick="mostrarTabProf('estudiantes')"
+          style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid transparent; font-size:0.85rem; font-weight:700; color:#aaa; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+          Mis estudiantes
+        </button>
+      </div>
+
+      <!-- Panel: Mi horario -->
+      <div id="panel-horario">
       <div class="horario-header">
         <div class="horario-titulo">Mi disponibilidad</div>
         <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem; margin-bottom:0.8rem;">
@@ -240,7 +272,7 @@
               <span>{{ r.estudiante.email|default:"Sin correo" }}</span>
               {% if r.estudiante.telefono %}
                 <span style="color:#bbb; margin:0 0.3rem;">·</span>
-                <span>{{ r.estudiante.telefono }}</span>
+                <span>{{ r.estudiante.telefono|formato_telefono }}</span>
               {% endif %}
             </div>
             {% if r.estado == 'pendiente' %}
@@ -261,6 +293,36 @@
       </div>
       {% endif %}
 
+      </div>{# fin panel-horario #}
+
+      <!-- Panel: Mis estudiantes -->
+      <div id="panel-estudiantes" style="display:none;">
+        {% if mis_estudiantes %}
+          {% for est in mis_estudiantes %}
+          <div style="display:flex; align-items:center; gap:1rem; padding:0.9rem 1.1rem; border-bottom:1px solid #eef4fd; background:#fff;">
+            {% if est.foto %}
+              <img src="{{ est.foto.url }}" alt="{{ est.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+            {% else %}
+              <div style="width:48px; height:48px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a56a0; flex-shrink:0;">
+                {{ est.username|first|upper }}
+              </div>
+            {% endif %}
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:0.9rem; font-weight:700; color:#1a1a1a;">{{ est.apodo|default:est.username }}</div>
+              <div style="font-size:0.75rem; color:#aaa;">@{{ est.username }}</div>
+              {% if est.telefono %}
+                <div style="font-size:0.78rem; color:#555; margin-top:0.2rem;">{{ est.telefono|formato_telefono }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding:2rem; text-align:center;">
+            <p style="font-size:0.85rem; color:#bbb;">Aún no tienes estudiantes.</p>
+          </div>
+        {% endif %}
+      </div>
+
     </div>
 
     {% else %}
@@ -269,11 +331,18 @@
     <div class="perfil-izq">
 
       <div class="perfil-card">
-        {% if user.foto %}
-          <img src="{{ user.foto.url }}" alt="{{ user.username }}" class="perfil-foto" />
-        {% else %}
-          <div class="perfil-foto-placeholder">{{ user.username|first|upper }}</div>
-        {% endif %}
+        <div onclick="document.getElementById('foto-input').click()" title="Cambiar foto"
+          style="position:relative; cursor:pointer; display:inline-block;">
+          {% if user.foto %}
+            <img id="foto-preview" src="{{ user.foto.url }}" alt="{{ user.username }}" class="perfil-foto" />
+          {% else %}
+            <div id="foto-preview" class="perfil-foto-placeholder">{{ user.username|first|upper }}</div>
+          {% endif %}
+          <div style="position:absolute; bottom:0; right:0; background:#1a56a0; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z"/></svg>
+          </div>
+        </div>
+        <input type="file" id="foto-input" accept="image/*" style="display:none;" onchange="subirFoto(this)">
         <div class="perfil-info">
           <h2 class="perfil-nombre">{{ user.apodo|default:user.username }}</h2>
           <p class="perfil-username">@{{ user.username }}</p>
@@ -288,7 +357,7 @@
         </div>
         <div class="perfil-fila">
           <span class="perfil-label">Teléfono</span>
-          <span class="perfil-valor">{{ user.telefono|default:"No especificado" }}</span>
+          <span class="perfil-valor">{{ user.telefono|formato_telefono }}</span>
         </div>
         <div class="perfil-fila">
           <span class="perfil-label">Miembro desde</span>
@@ -335,11 +404,21 @@
     <!-- COLUMNA DERECHA ESTUDIANTE -->
     <div class="perfil-der">
 
-      {% with mis_clases=user.reservas_hechas.exclude|default:None %}
-      {% endwith %}
+      <!-- Tabs -->
+      <div style="display:flex; gap:0; border-bottom:2px solid #dce8f5; margin-bottom:1.2rem;">
+        <button id="tab-est-horario" onclick="mostrarTabEst('horario')"
+          style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid #1a56a0; font-size:0.85rem; font-weight:700; color:#1a56a0; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+          Mis clases
+        </button>
+        <button id="tab-est-profesores" onclick="mostrarTabEst('profesores')"
+          style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid transparent; font-size:0.85rem; font-weight:700; color:#aaa; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+          Mis profesores
+        </button>
+      </div>
 
+      <!-- Panel: Mis clases -->
+      <div id="panel-est-horario">
       {% if user.reservas_hechas.exists %}
-        <!-- Tiene reservas — mostrar horario con sus clases -->
         <div class="horario-header">
           <div class="horario-titulo">Mis clases agendadas</div>
           <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem; margin-bottom:0.8rem;">
@@ -376,7 +455,6 @@
         </div>
 
       {% else %}
-        <!-- Sin reservas — pantalla de bienvenida -->
         <div class="horario-header">
           <div class="horario-titulo">Bienvenido a ProFinder</div>
           <p class="horario-sub">Busca un profesor en el tablero y agenda tu primera clase.</p>
@@ -387,6 +465,35 @@
           </a>
         </div>
       {% endif %}
+      </div>{# fin panel-est-horario #}
+
+      <!-- Panel: Mis profesores -->
+      <div id="panel-est-profesores" style="display:none;">
+        {% if mis_profesores %}
+          {% for prof in mis_profesores %}
+          <div style="display:flex; align-items:center; gap:1rem; padding:0.9rem 1.1rem; border-bottom:1px solid #eef4fd; background:#fff;">
+            {% if prof.foto %}
+              <img src="{{ prof.foto.url }}" alt="{{ prof.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+            {% else %}
+              <div style="width:48px; height:48px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a56a0; flex-shrink:0;">
+                {{ prof.username|first|upper }}
+              </div>
+            {% endif %}
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:0.9rem; font-weight:700; color:#1a1a1a;">{{ prof.apodo|default:prof.username }}</div>
+              <div style="font-size:0.75rem; color:#aaa;">@{{ prof.username }}</div>
+              {% if prof.telefono %}
+                <div style="font-size:0.78rem; color:#555; margin-top:0.2rem;">{{ prof.telefono|formato_telefono }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding:2rem; text-align:center;">
+            <p style="font-size:0.85rem; color:#bbb;">Aún no tienes profesores agendados.</p>
+          </div>
+        {% endif %}
+      </div>
 
     </div>
 
@@ -459,6 +566,49 @@
     });
     if (res.ok) { location.reload(); }
     else { alert('Error al guardar.'); }
+  }
+
+  async function subirFoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('foto', file);
+    const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    const res = await fetch('/subir-foto/', { method: 'POST', headers: { 'X-CSRFToken': csrf }, body: form });
+    if (res.ok) {
+      const data = await res.json();
+      const preview = document.getElementById('foto-preview');
+      const img = document.createElement('img');
+      img.id        = 'foto-preview';
+      img.src       = data.url;
+      img.className = preview.className;
+      img.alt       = preview.alt || '';
+      preview.replaceWith(img);
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Error al subir la foto.');
+    }
+    input.value = '';
+  }
+
+  function mostrarTabEst(tab) {
+    const esHorario = tab === 'horario';
+    document.getElementById('panel-est-horario').style.display    = esHorario ? 'block' : 'none';
+    document.getElementById('panel-est-profesores').style.display = esHorario ? 'none'  : 'block';
+    document.getElementById('tab-est-horario').style.color               = esHorario ? '#1a56a0' : '#aaa';
+    document.getElementById('tab-est-horario').style.borderBottomColor   = esHorario ? '#1a56a0' : 'transparent';
+    document.getElementById('tab-est-profesores').style.color             = esHorario ? '#aaa' : '#1a56a0';
+    document.getElementById('tab-est-profesores').style.borderBottomColor = esHorario ? 'transparent' : '#1a56a0';
+  }
+
+  function mostrarTabProf(tab) {
+    const esHorario = tab === 'horario';
+    document.getElementById('panel-horario').style.display     = esHorario ? 'block' : 'none';
+    document.getElementById('panel-estudiantes').style.display = esHorario ? 'none'  : 'block';
+    document.getElementById('tab-horario').style.color          = esHorario ? '#1a56a0' : '#aaa';
+    document.getElementById('tab-horario').style.borderBottomColor     = esHorario ? '#1a56a0' : 'transparent';
+    document.getElementById('tab-estudiantes').style.color      = esHorario ? '#aaa' : '#1a56a0';
+    document.getElementById('tab-estudiantes').style.borderBottomColor = esHorario ? 'transparent' : '#1a56a0';
   }
 
   async function gestionarReserva(btn) {

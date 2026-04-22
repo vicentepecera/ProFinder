@@ -249,6 +249,20 @@ def perfil(request):
         estudiante=request.user
     ).exists()
 
+    # Estudiantes con hora confirmada vigente con este profesor
+    mis_estudiantes = User.objects.filter(
+        reservas_hechas__profesor=request.user,
+        reservas_hechas__estado='confirmada',
+        reservas_hechas__fecha__gte=hoy,
+    ).distinct()
+
+    # Profesores con hora confirmada vigente para el estudiante
+    mis_profesores = User.objects.filter(
+        reservas_recibidas__estudiante=request.user,
+        reservas_recibidas__estado='confirmada',
+        reservas_recibidas__fecha__gte=hoy,
+    ).distinct()
+
     return render(request, 'perfil.html', {
         'user':               request.user,
         'horas':              horas,
@@ -257,6 +271,8 @@ def perfil(request):
         'ramos_por_depto':    ramos_por_depto,
         'mis_ramos_ids':      mis_ramos_ids,
         'reservas_recibidas': reservas_recibidas,
+        'mis_estudiantes':    mis_estudiantes,
+        'mis_profesores':     mis_profesores,
         'mis_clases':         mis_clases,
         'reservas_json':      reservas_confirmadas_json,
         'pendientes_json':    reservas_pendientes_json,
@@ -625,3 +641,18 @@ def mis_profesores(request):
             })
 
     return JsonResponse({'profesores': profesores})
+
+@require_POST
+def subir_foto(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'No autenticado'}, status=401)
+    foto = request.FILES.get('foto')
+    if not foto:
+        return JsonResponse({'error': 'No se recibió imagen'}, status=400)
+    if not foto.content_type.startswith('image/'):
+        return JsonResponse({'error': 'El archivo debe ser una imagen'}, status=400)
+    if foto.size > 5 * 1024 * 1024:
+        return JsonResponse({'error': 'La imagen no puede superar 5 MB'}, status=400)
+    request.user.foto = foto
+    request.user.save()
+    return JsonResponse({'url': request.user.foto.url})
