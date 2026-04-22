@@ -681,8 +681,9 @@ def recuperar_contrasena(request):
         token = default_token_generator.make_token(user)
         try:
             enviar_recuperacion(user, token, uid)
-        except Exception:
-            pass
+            print(f"[EMAIL] Recuperación enviada a {user.email}")
+        except Exception as e:
+            print(f"[EMAIL ERROR] {e}")
     # Siempre muestra la misma pantalla para no revelar si el email existe
     return render(request, 'recuperar_contrasena.html', {'enviado': True})
 
