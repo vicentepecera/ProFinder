@@ -34,7 +34,7 @@
       </div>
       <div style="display:flex; align-items:center; gap:0.7rem;">
         {% if user.foto %}
-          <img src="{{ user.foto.url }}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.4);" />
+          <img src="{{ user.foto }}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.4);" />
         {% else %}
           <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:1rem;">
             {{ user.username|first|upper }}
@@ -138,7 +138,7 @@
         <div style="position:relative;" id="avatar-wrapper">
           <div onclick="toggleAvatarMenu()" style="cursor:pointer; position:relative;" class="avatar-link">
             {% if user.foto %}
-              <img src="{{ user.foto.url }}" alt="{{ user.username }}" class="avatar-img" />
+              <img src="{{ user.foto }}" alt="{{ user.username }}" class="avatar-img" />
             {% else %}
               <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
             {% endif %}

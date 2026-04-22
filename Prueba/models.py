@@ -55,7 +55,7 @@ class User(AbstractUser):
     ramos_tomados = models.ManyToManyField('Ramo', blank=True, related_name='estudiantes')
 
     apodo     = models.CharField(max_length=30)
-    foto      = models.ImageField(upload_to='fotos_perfil/', blank=True, null=True)
+    foto      = models.TextField(blank=True, default='')
     ramos     = models.ManyToManyField(Ramo, blank=True)
     precio    = models.IntegerField(default=0)
     telefono  = models.CharField(max_length=20, blank=True, default='')

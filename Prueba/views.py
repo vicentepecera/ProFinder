@@ -88,7 +88,7 @@ def tablero(request):
                 profesores_filtrados.append({
                     "id":     u.id,
                     "nombre": u.apodo or u.username,
-                    "foto":   u.foto.url if u.foto else None,
+                    "foto":   u.foto if u.foto else None,
                     "ramos":  list(u.ramos.values_list('nombre', flat=True)),
                     "precio": u.precio,
                 })
@@ -642,7 +642,7 @@ def mis_profesores(request):
             profesores.append({
                 'id':     r.profesor.id,
                 'nombre': r.profesor.apodo or r.profesor.username,
-                'foto':   r.profesor.foto.url if r.profesor.foto else None,
+                'foto':   r.profesor.foto if r.profesor.foto else None,
                 'ramos':  list(r.profesor.ramos.values_list('nombre', flat=True)),
                 'precio': r.profesor.precio,
             })
@@ -653,6 +653,7 @@ def mis_profesores(request):
 def subir_foto(request):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'No autenticado'}, status=401)
+    import base64
     foto = request.FILES.get('foto')
     if not foto:
         return JsonResponse({'error': 'No se recibió imagen'}, status=400)
@@ -660,9 +661,10 @@ def subir_foto(request):
         return JsonResponse({'error': 'El archivo debe ser una imagen'}, status=400)
     if foto.size > 5 * 1024 * 1024:
         return JsonResponse({'error': 'La imagen no puede superar 5 MB'}, status=400)
-    request.user.foto = foto
+    data = base64.b64encode(foto.read()).decode('utf-8')
+    request.user.foto = f"data:{foto.content_type};base64,{data}"
     request.user.save()
-    return JsonResponse({'url': request.user.foto.url})
+    return JsonResponse({'url': request.user.foto})
 
 
 def recuperar_contrasena(request):

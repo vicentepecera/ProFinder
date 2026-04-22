@@ -12,7 +12,7 @@
 
       <div class="perfil-card">
         {% if profesor.foto %}
-          <img src="{{ profesor.foto.url }}" alt="{{ profesor.username }}" class="perfil-foto" />
+          <img src="{{ profesor.foto }}" alt="{{ profesor.username }}" class="perfil-foto" />
         {% else %}
           <div class="perfil-foto-placeholder">{{ profesor.username|first|upper }}</div>
         {% endif %}

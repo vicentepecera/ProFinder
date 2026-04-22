@@ -16,7 +16,7 @@
         <div onclick="document.getElementById('foto-input').click()" title="Cambiar foto"
           style="position:relative; cursor:pointer; display:inline-block;">
           {% if user.foto %}
-            <img id="foto-preview" src="{{ user.foto.url }}" alt="{{ user.username }}" class="perfil-foto" />
+            <img id="foto-preview" src="{{ user.foto }}" alt="{{ user.username }}" class="perfil-foto" />
           {% else %}
             <div id="foto-preview" class="perfil-foto-placeholder">{{ user.username|first|upper }}</div>
           {% endif %}
@@ -301,7 +301,7 @@
           {% for est in mis_estudiantes %}
           <div style="display:flex; align-items:center; gap:1rem; padding:0.9rem 1.1rem; border-bottom:1px solid #eef4fd; background:#fff;">
             {% if est.foto %}
-              <img src="{{ est.foto.url }}" alt="{{ est.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+              <img src="{{ est.foto }}" alt="{{ est.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
             {% else %}
               <div style="width:48px; height:48px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a56a0; flex-shrink:0;">
                 {{ est.username|first|upper }}
@@ -334,7 +334,7 @@
         <div onclick="document.getElementById('foto-input').click()" title="Cambiar foto"
           style="position:relative; cursor:pointer; display:inline-block;">
           {% if user.foto %}
-            <img id="foto-preview" src="{{ user.foto.url }}" alt="{{ user.username }}" class="perfil-foto" />
+            <img id="foto-preview" src="{{ user.foto }}" alt="{{ user.username }}" class="perfil-foto" />
           {% else %}
             <div id="foto-preview" class="perfil-foto-placeholder">{{ user.username|first|upper }}</div>
           {% endif %}
@@ -473,7 +473,7 @@
           {% for prof in mis_profesores %}
           <div style="display:flex; align-items:center; gap:1rem; padding:0.9rem 1.1rem; border-bottom:1px solid #eef4fd; background:#fff;">
             {% if prof.foto %}
-              <img src="{{ prof.foto.url }}" alt="{{ prof.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+              <img src="{{ prof.foto }}" alt="{{ prof.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
             {% else %}
               <div style="width:48px; height:48px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a56a0; flex-shrink:0;">
                 {{ prof.username|first|upper }}
