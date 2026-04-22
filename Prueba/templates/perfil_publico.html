@@ -69,31 +69,6 @@
       </div>
     </div>
 
-      {% if es_mi_perfil %}
-        <a href="{% url 'perfil' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:block;">
-          Editar mi perfil
-        </a>
-      {% elif request.user.is_authenticated %}
-        <!-- Botón principal — cambia entre "Agendar hora" y "Confirmar selección" -->
-        <button id="btn-agendar" onclick="iniciarAgendamiento()" class="btn-submit" style="border:none; cursor:pointer;">
-          Agendar hora
-        </button>
-        <button id="btn-confirmar" onclick="confirmarAgendamiento()" class="btn-submit" style="border:none; cursor:pointer; display:none; background:#208c1d;">
-          Confirmar selección
-        </button>
-        <button id="btn-cancelar-agenda" onclick="cancelarAgendamiento()" class="btn-horario btn-horario-descartar" style="width:100%; display:none; margin-top:0.4rem;">
-          Cancelar
-        </button>
-
-        <!-- Info del bloque seleccionado -->
-        <div id="bloque-seleccionado-info" style="display:none; margin-top:0.5rem; padding:0.7rem 1rem; background:#eef4fd; border:1.5px solid #1a56a0; border-radius:10px; font-size:0.85rem; color:#1a56a0; font-weight:600; text-align:center;">
-        </div>
-      {% else %}
-        <a href="{% url 'login' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:block;">
-          Inicia sesión para agendar
-        </a>
-      {% endif %}
-
     </div>
 
     <!-- COLUMNA DERECHA -->
@@ -142,6 +117,40 @@
         {% endfor %}
       {% endfor %}
     </div>
+
+<div style="display:flex; justify-content:flex-end; margin-top:0.8rem;">
+{% if es_mi_perfil %}
+  <div style="display:flex; flex-direction:column; align-items:stretch; min-width:160px;">
+    <a href="{% url 'perfil' %}" class="btn-submit" style="text-decoration:none; text-align:center;">
+      Editar mi perfil
+    </a>
+  </div>
+
+{% elif request.user.is_authenticated %}
+  <div style="display:flex; flex-direction:column; align-items:stretch; min-width:180px; gap:0.4rem;">
+    <button id="btn-agendar" onclick="iniciarAgendamiento()" class="btn-submit" style="border:none; cursor:pointer;">
+      Agendar hora
+    </button>
+    <div id="fila-confirmar" style="display:none; flex-direction:row; gap:0.4rem;">
+      <button id="btn-cancelar-agenda" onclick="cancelarAgendamiento()" class="btn-horario btn-horario-descartar" style="flex:1;">
+        Cancelar
+      </button>
+      <button id="btn-confirmar" onclick="confirmarAgendamiento()" class="btn-submit" disabled style="flex:2; border:none; cursor:not-allowed; opacity:0.5;">
+        Confirmar hora
+      </button>
+    </div>
+    <div id="bloque-seleccionado-info" style="display:none; padding:0.7rem 1rem; background:#eef4fd; border:1.5px solid #1a56a0; border-radius:10px; font-size:0.85rem; color:#1a56a0; font-weight:600; text-align:center;">
+    </div>
+  </div>
+
+{% else %}
+  <div style="display:flex; flex-direction:column; align-items:stretch; min-width:200px;">
+    <a href="{% url 'login' %}" class="btn-submit" style="text-decoration:none; text-align:center;">
+      Inicia sesión para agendar
+    </a>
+  </div>
+{% endif %}
+</div>
 
       <!-- Mis horas agendadas -->
       {% if not es_mi_perfil and request.user.is_authenticated %}
@@ -242,16 +251,22 @@
     const info = document.getElementById('bloque-seleccionado-info');
     info.textContent   = `Seleccionaste: ${b.dataset.dia} a las ${b.dataset.hora}`;
     info.style.display = 'block';
-    document.getElementById('btn-confirmar').style.display = 'block';
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    btnConfirmar.disabled    = false;
+    btnConfirmar.style.opacity = '1';
+    btnConfirmar.style.cursor  = 'pointer';
   }, true); // <-- useCapture: true, se ejecuta antes que cualquier otro handler
 
   function iniciarAgendamiento() {
     modoAgendando = true;
     document.body.classList.add('modo-agendar');
-    document.getElementById('horario-sub').textContent           = 'Selecciona un bloque verde para agendar.';
-    document.getElementById('btn-agendar').style.display         = 'none';
-    document.getElementById('btn-confirmar').style.display       = 'none';
-    document.getElementById('btn-cancelar-agenda').style.display = 'block';
+    document.getElementById('horario-sub').textContent   = 'Selecciona un bloque verde para agendar.';
+    document.getElementById('btn-agendar').style.display = 'none';
+    document.getElementById('fila-confirmar').style.display = 'flex';
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    btnConfirmar.disabled    = true;
+    btnConfirmar.style.opacity = '0.5';
+    btnConfirmar.style.cursor  = 'not-allowed';
     document.getElementById('bloque-seleccionado-info').style.display = 'none';
 
     document.querySelectorAll('.horario-bloque').forEach(b => {
@@ -269,10 +284,13 @@
       bloqueElegido = null;
     }
 
-    document.getElementById('horario-sub').textContent           = 'Verde: disponible — Rojo: reservado.';
-    document.getElementById('btn-agendar').style.display         = 'block';
-    document.getElementById('btn-confirmar').style.display       = 'none';
-    document.getElementById('btn-cancelar-agenda').style.display = 'none';
+    document.getElementById('horario-sub').textContent      = 'Verde: disponible — Rojo: reservado.';
+    document.getElementById('btn-agendar').style.display    = 'block';
+    document.getElementById('fila-confirmar').style.display = 'none';
+    const btnConfirmar = document.getElementById('btn-confirmar');
+    btnConfirmar.disabled    = true;
+    btnConfirmar.style.opacity = '0.5';
+    btnConfirmar.style.cursor  = 'not-allowed';
     document.getElementById('bloque-seleccionado-info').style.display = 'none';
 
     document.querySelectorAll('.horario-bloque.disponible-click').forEach(b => {

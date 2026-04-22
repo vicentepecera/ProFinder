@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_POST
+from django.utils import timezone
 from Prueba.models import User, BloqueHorario, Reserva
 from categorias.models import Categoria
 import json
@@ -202,10 +203,23 @@ def perfil(request):
         'Sáb': lunes + timedelta(days=5),
     }
 
+    hoy = timezone.localdate()
+
     # Reservas recibidas (como profesor)
     reservas_recibidas = Reserva.objects.filter(
         profesor=request.user
+    ).exclude(
+        estado='confirmada',
+        fecha__lt=hoy
     ).select_related('estudiante').order_by('fecha', 'dia', 'hora')
+
+    # Reservas hechas (como estudiante)
+    mis_clases = Reserva.objects.filter(
+        estudiante=request.user
+    ).exclude(
+        estado='confirmada',
+        fecha__lt=hoy
+    ).select_related('profesor').order_by('fecha', 'hora')
 
     # Reservas de esta semana para pintar el horario (como profesor)
     reservas_semana_prof = Reserva.objects.filter(
@@ -243,6 +257,7 @@ def perfil(request):
         'ramos_por_depto':    ramos_por_depto,
         'mis_ramos_ids':      mis_ramos_ids,
         'reservas_recibidas': reservas_recibidas,
+        'mis_clases':         mis_clases,
         'reservas_json':      reservas_confirmadas_json,
         'pendientes_json':    reservas_pendientes_json,
         'bloques_ocupados_json': bloques_ocupados_json,
@@ -296,9 +311,13 @@ def perfil_publico(request, user_id):
     mis_reservas     = []
     tiene_confirmada = False
     if request.user.is_authenticated:
+        hoy = timezone.localdate()
         qs = Reserva.objects.filter(
             profesor=profesor,
             estudiante=request.user
+        ).exclude(
+            estado='confirmada',
+            fecha__lt=hoy
         ).order_by('fecha', 'hora').values('dia', 'hora', 'fecha', 'estado')
 
         mis_reservas = list(qs)
