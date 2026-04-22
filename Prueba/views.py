@@ -150,8 +150,9 @@ def register_user(request):
         try:
             from Prueba.email_utils import enviar_bienvenida
             enviar_bienvenida(user)
-        except Exception:
-            pass
+            print(f"[EMAIL] Bienvenida enviada a {user.email}")
+        except Exception as e:
+            print(f"[EMAIL ERROR] {e}")
 
         login(request, user)
         return HttpResponseRedirect('/tablero')
