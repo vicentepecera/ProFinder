@@ -48,26 +48,35 @@
         </div>
       </div>
 
-    <div class="perfil-datos">
-      <div class="perfil-seccion-titulo">Materias que imparte</div>
-      <div style="padding: 0.5rem 1.1rem 1rem;">
-        {% regroup ramos_ordenados by depto as ramos_por_depto %}
-        {% for grupo in ramos_por_depto %}
-          <div style="margin-bottom:0.6rem;">
-            <div style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#aaa; margin-bottom:0.3rem;">
-              {{ grupo.grouper }}
-            </div>
-            <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
-              {% for ramo in grupo.list %}
-                <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
-              {% endfor %}
-            </div>
-          </div>
-        {% empty %}
-          <p style="font-size:0.78rem; color:#bbb;">Sin ramos asignados.</p>
-        {% endfor %}
-      </div>
-    </div>
+<div class="perfil-datos">
+  <div class="perfil-seccion-titulo">Materias que imparte</div>
+
+  <div style="padding: 0.5rem 1.1rem 1rem;">
+    {% regroup ramos_ordenados by depto as ramos_por_depto %}
+
+    {% for grupo in ramos_por_depto %}
+      <details class="ramo-grupo">
+
+        <!-- HEADER -->
+        <summary class="ramo-header">
+          {{ grupo.grouper }}
+          <span class="ramo-arrow">▸</span>
+        </summary>
+
+        <!-- CONTENIDO -->
+        <div class="ramo-contenido">
+          {% for ramo in grupo.list %}
+            <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
+          {% endfor %}
+        </div>
+
+      </details>
+
+    {% empty %}
+      <p class="ramo-vacio">Sin ramos asignados.</p>
+    {% endfor %}
+  </div>
+</div>
 
     <!-- Reseñas -->
     <div class="perfil-datos">
@@ -85,7 +94,7 @@
         <p style="font-size:0.78rem; color:#555; margin-bottom:0.6rem;">Tuviste clase con este profesor. ¿Cómo fue?</p>
         <div style="display:flex; gap:0.3rem; margin-bottom:0.6rem;" id="estrellas">
           {% for i in "12345" %}
-            <span data-val="{{ i }}" onclick="seleccionarEstrella({{ i }})"
+            <span data-val="{{ i }}" onclick="seleccionarEstrella(+this.dataset.val)"
               style="font-size:1.6rem; cursor:pointer; color:#ddd; transition:color 0.15s;">★</span>
           {% endfor %}
         </div>

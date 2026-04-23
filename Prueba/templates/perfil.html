@@ -128,31 +128,40 @@
             <button onclick="descartarRamos()" class="btn-horario btn-horario-descartar" style="font-size:0.7rem; padding:0.25rem 0.7rem;">Descartar</button>
           </div>
         </div>
-        <div id="ramos-ver">
-          <div style="padding:0.5rem 1.1rem 0.2rem;">
-            {% regroup user.ramos.all by depto as mis_ramos_agrupados %}
-            {% for grupo in mis_ramos_agrupados %}
-              <details style="margin-bottom:0.4rem;" open>
-                <summary style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#aaa; cursor:pointer; list-style:none; display:flex; align-items:center; gap:0.4rem; padding:0.25rem 0; user-select:none;">
-                  {{ grupo.grouper }}
-                </summary>
-                <div style="display:flex; flex-wrap:wrap; gap:0.35rem; padding:0.4rem 0 0.3rem 0.6rem;">
-                  {% for ramo in grupo.list %}
-                    <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
-                  {% endfor %}
-                </div>
-              </details>
-            {% empty %}
-              <p style="font-size:0.78rem; color:#bbb; padding:0.5rem 0;">Sin ramos asignados.</p>
-            {% endfor %}
-          </div>
-          <div class="perfil-fila">
-            <span class="perfil-label">Precio</span>
-            <span class="perfil-valor perfil-precio" id="precio-display">
-              ${{ user.precio|default:0 }} <span>/ hr</span>
-            </span>
-          </div>
+<div id="ramos-ver">
+  <div style="padding:0.5rem 1.1rem 0.2rem;">
+    {% regroup user.ramos.all by depto as mis_ramos_agrupados %}
+
+    {% for grupo in mis_ramos_agrupados %}
+      <details class="ramo-grupo">
+
+        <!-- HEADER -->
+        <summary class="ramo-header">
+          {{ grupo.grouper }}
+          <span class="ramo-arrow">▸</span>
+        </summary>
+
+        <!-- CONTENIDO -->
+        <div class="ramo-contenido">
+          {% for ramo in grupo.list %}
+            <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
+          {% endfor %}
         </div>
+
+      </details>
+
+    {% empty %}
+      <p class="ramo-vacio">Sin ramos asignados.</p>
+    {% endfor %}
+  </div>
+
+  <div class="perfil-fila">
+    <span class="perfil-label">Precio</span>
+    <span class="perfil-valor perfil-precio" id="precio-display">
+      ${{ user.precio|default:0 }} <span>/ hr</span>
+    </span>
+  </div>
+</div>
         <div id="ramos-editar" style="display:none; padding:0.7rem 1.1rem 1rem;">
           {% for depto, ramos_lista in ramos_por_depto.items %}
             <div style="margin-bottom:0.8rem;">

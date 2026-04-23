@@ -212,6 +212,12 @@ def perfil(request):
 
     hoy = timezone.localdate()
 
+    Reserva.objects.filter(
+        estudiante=request.user,
+        estado='pendiente',
+        fecha__lt=hoy,
+    ).delete()
+
     # Reservas recibidas (como profesor)
     reservas_recibidas = Reserva.objects.filter(
         profesor=request.user
@@ -334,6 +340,11 @@ def perfil_publico(request, user_id):
     tiene_confirmada      = False
     if request.user.is_authenticated:
         hoy = timezone.localdate()
+        Reserva.objects.filter(
+            estudiante=request.user,
+            estado='pendiente',
+            fecha__lt=hoy,
+        ).delete()
         qs = Reserva.objects.filter(
             profesor=profesor,
             estudiante=request.user

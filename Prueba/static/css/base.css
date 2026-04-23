@@ -606,3 +606,48 @@ body.modo-agendar .horario-bloque.disponible-click {
   border-radius: 2px;
   transition: all 0.2s;
 }
+.ramo-grupo {
+  margin-bottom: 0.4rem;
+}
+
+.ramo-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #aaa;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+/* Quitar flecha default */
+.ramo-header::-webkit-details-marker {
+  display: none;
+}
+
+/* Flechita custom */
+.ramo-arrow {
+  transition: transform 0.2s ease;
+}
+
+/* Rotación cuando está abierto */
+.ramo-grupo[open] .ramo-arrow {
+  transform: rotate(90deg);
+}
+
+.ramo-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.4rem 0 0.3rem 0.6rem;
+}
+
+.ramo-vacio {
+  font-size: 0.78rem;
+  color: #bbb;
+  padding: 0.5rem 0;
+}
