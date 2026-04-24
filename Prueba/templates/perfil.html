@@ -267,15 +267,11 @@
       <div class="horario-header">
         <div class="horario-titulo">Mi disponibilidad</div>
         <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem; margin-bottom:0.8rem;">
-          {% if semana_offset > 0 %}
-            <a href="?semana={{ semana_offset|add:'-1' }}"
-              style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">← Anterior</a>
-          {% else %}
-            <span style="padding:0.3rem 0.7rem; background:#f5f5f0; border:1.5px solid #e8e8e3; border-radius:8px; font-size:0.78rem; font-weight:700; color:#bbb;">← Anterior</span>
-          {% endif %}
-          <span style="font-size:0.82rem; font-weight:600; color:#555;">{{ lunes|date:"d M" }} — {{ sabado|date:"d M Y" }}</span>
-          <a href="?semana={{ semana_offset|add:'1' }}"
-            style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">Siguiente →</a>
+          <button id="btn-prof-anterior" onclick="navegarSemanaProf(-1)"
+            style="padding:0.3rem 0.7rem; background:#f5f5f0; border:1.5px solid #e8e8e3; border-radius:8px; font-size:0.78rem; font-weight:700; color:#bbb; cursor:not-allowed; font-family:inherit;">← Anterior</button>
+          <span id="prof-semana-label" style="font-size:0.82rem; font-weight:600; color:#555;">{{ lunes|date:"d M" }} — {{ sabado|date:"d M Y" }}</span>
+          <button onclick="navegarSemanaProf(1)"
+            style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; cursor:pointer; font-family:inherit;">Siguiente →</button>
         </div>
         <p class="horario-sub" id="horario-sub-texto">Tus horarios disponibles para clases.</p>
       </div>
@@ -433,50 +429,40 @@
 
         <!-- Panel: Mis clases -->
         <div id="panel-pest-clases">
-          {% if mis_clases %}
-            <div class="horario-header">
-              <div class="horario-titulo">Mis clases agendadas</div>
-              <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem; margin-bottom:0.8rem;">
-                {% if semana_offset > 0 %}
-                  <a href="?semana={{ semana_offset|add:'-1' }}"
-                    style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">← Anterior</a>
-                {% else %}
-                  <span style="padding:0.3rem 0.7rem; background:#f5f5f0; border:1.5px solid #e8e8e3; border-radius:8px; font-size:0.78rem; font-weight:700; color:#bbb;">← Anterior</span>
-                {% endif %}
-                <span style="font-size:0.82rem; font-weight:600; color:#555;">{{ lunes|date:"d M" }} — {{ sabado|date:"d M Y" }}</span>
-                <a href="?semana={{ semana_offset|add:'1' }}"
-                  style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">Siguiente →</a>
-              </div>
-              <p class="horario-sub">Amarillo: pendiente — Azul: confirmada.</p>
+          <div class="horario-header">
+            <div class="horario-titulo">Mis clases agendadas</div>
+            <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem; margin-bottom:0.8rem;">
+              <button id="btn-pest-anterior" onclick="navegarSemanaEst(-1)"
+                style="padding:0.3rem 0.7rem; background:#f5f5f0; border:1.5px solid #e8e8e3; border-radius:8px; font-size:0.78rem; font-weight:700; color:#bbb; cursor:not-allowed; font-family:inherit;">← Anterior</button>
+              <span id="pest-semana-label" style="font-size:0.82rem; font-weight:600; color:#555;">{{ lunes|date:"d M" }} — {{ sabado|date:"d M Y" }}</span>
+              <button onclick="navegarSemanaEst(1)"
+                style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; cursor:pointer; font-family:inherit;">Siguiente →</button>
             </div>
-            <div class="horario-grid" id="horario-grid-pest">
-              <div class="horario-vacia"></div>
+            <p class="horario-sub">Amarillo: pendiente — Azul: confirmada.</p>
+          </div>
+          <div class="horario-grid" id="horario-grid-pest">
+            <div class="horario-vacia"></div>
+            {% for dia in dias %}
+              <div class="horario-dia" style="display:flex; flex-direction:column; align-items:center;">
+                <span>{{ dia }}</span>
+                <span style="font-size:0.6rem; color:#bbb; font-weight:500;">{{ fechas_semana|get_item:dia|date:"d/m" }}</span>
+              </div>
+            {% endfor %}
+            {% for hora in horas %}
+              <div class="horario-hora">{{ hora }}</div>
               {% for dia in dias %}
-                <div class="horario-dia" style="display:flex; flex-direction:column; align-items:center;">
-                  <span>{{ dia }}</span>
-                  <span style="font-size:0.6rem; color:#bbb; font-weight:500;">{{ fechas_semana|get_item:dia|date:"d/m" }}</span>
+                <div class="horario-bloque solo-lectura"
+                    data-hora="{{ hora }}" data-dia="{{ dia }}"
+                    data-fecha="{{ fechas_semana|get_item:dia }}">
                 </div>
               {% endfor %}
-              {% for hora in horas %}
-                <div class="horario-hora">{{ hora }}</div>
-                {% for dia in dias %}
-                  <div class="horario-bloque solo-lectura"
-                      data-hora="{{ hora }}" data-dia="{{ dia }}"
-                      data-fecha="{{ fechas_semana|get_item:dia }}">
-                  </div>
-                {% endfor %}
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="horario-header">
-              <div class="horario-titulo">Agenda tu primera clase</div>
-              <p class="horario-sub">Busca un profesor en el tablero y agenda una hora.</p>
-            </div>
-            <div style="display:flex; justify-content:center; margin-top:2rem;">
-              <a href="{% url 'tablero' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:inline-block; width:auto; padding:0.75rem 2rem;">
-                Ir al tablero
-              </a>
-            </div>
+            {% endfor %}
+          </div>
+          {% if not mis_clases %}
+          <div style="text-align:center; margin-top:1.5rem;">
+            <p style="font-size:0.82rem; color:#bbb; margin-bottom:0.8rem;">No tienes clases en esta semana.</p>
+            <a href="{% url 'tablero' %}" class="btn-submit" style="text-decoration:none; display:inline-block; width:auto; padding:0.6rem 1.8rem;">Ir al tablero</a>
+          </div>
           {% endif %}
         </div>
 
@@ -697,6 +683,7 @@
 <script id="pendientes-data"   type="application/json">{{ pendientes_json|safe }}</script>
 <script id="ocupados-data"     type="application/json">{{ bloques_ocupados_json|safe }}</script>
 <script id="mis-reservas-data" type="application/json">{{ mis_reservas_semana_json|safe }}</script>
+<script id="semana-offset-data" type="application/json">{{ semana_offset }}</script>
 
 <script>
   function activarEdicionDatos() {
@@ -791,6 +778,7 @@
 
   function cambiarVista(modo) {
     const esProf = modo === 'profesor';
+    sessionStorage.setItem('perfilVista', modo);
     document.getElementById('vista-profesor').style.display          = esProf ? 'block' : 'none';
     document.getElementById('vista-estudiante').style.display         = esProf ? 'none'  : 'block';
     document.getElementById('seccion-ramos').style.display            = esProf ? 'block' : 'none';
@@ -799,6 +787,122 @@
     document.getElementById('toggle-profesor').style.color            = esProf ? '#fff'        : '#aaa';
     document.getElementById('toggle-estudiante').style.background     = esProf ? 'transparent' : '#1a56a0';
     document.getElementById('toggle-estudiante').style.color          = esProf ? '#aaa'         : '#fff';
+  }
+
+  // Restaurar vista al recargar (para que el reload de semana-horario no pierda el modo)
+  (function() {
+    const saved = sessionStorage.getItem('perfilVista');
+    if (saved === 'estudiante') cambiarVista('estudiante');
+  })();
+
+  // ── Navegación de semana sin recargar página ──
+  const _semanaInit = JSON.parse(document.getElementById('semana-offset-data').textContent);
+  let semanaEstOffset  = _semanaInit;
+  let semanaProfOffset = _semanaInit;
+
+  function _actualizarBtnAnterior(btnId, offset) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.style.color       = offset > 0 ? '#1a56a0' : '#bbb';
+    btn.style.background  = offset > 0 ? '#f0f4f8' : '#f5f5f0';
+    btn.style.borderColor = offset > 0 ? '#dce8f5' : '#e8e8e3';
+    btn.style.cursor      = offset > 0 ? 'pointer'  : 'not-allowed';
+  }
+
+  function _aplicarPasados(grid, fechas) {
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const pasados = new Set(
+      Object.entries(fechas)
+        .filter(([, f]) => new Date(f + 'T00:00:00') < hoy)
+        .map(([d]) => d)
+    );
+    grid.querySelectorAll('.horario-bloque').forEach(b => {
+      if (pasados.has(b.dataset.dia)) {
+        b.style.background = '#f0f0f0'; b.style.borderColor = '#e0e0e0'; b.style.pointerEvents = 'none';
+      }
+    });
+    grid.querySelectorAll('.horario-dia').forEach(col => {
+      const dia = col.querySelector('span:first-child')?.textContent.trim();
+      col.style.opacity = pasados.has(dia) ? '0.35' : '';
+    });
+    return pasados;
+  }
+
+  function _actualizarFechas(grid, data) {
+    grid.querySelectorAll('.horario-bloque').forEach(b => {
+      if (data.fechas[b.dataset.dia]) b.dataset.fecha = data.fechas[b.dataset.dia];
+    });
+    grid.querySelectorAll('.horario-dia').forEach(col => {
+      const dia = col.querySelector('span:first-child')?.textContent.trim();
+      const sub = col.querySelector('span:last-child');
+      if (dia && sub && data.fechas_display[dia]) sub.textContent = data.fechas_display[dia];
+    });
+  }
+
+  async function navegarSemanaProf(delta) {
+    const nuevoOffset = semanaProfOffset + delta;
+    if (nuevoOffset < 0) return;
+    const res = await fetch(`/perfil/semana-prof/?offset=${nuevoOffset}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    semanaProfOffset = data.offset;
+    document.getElementById('prof-semana-label').textContent = `${data.lunes_fmt} — ${data.sabado_fmt}`;
+    _actualizarBtnAnterior('btn-prof-anterior', semanaProfOffset);
+
+    const grid = document.getElementById('horario-grid');
+    _actualizarFechas(grid, data);
+
+    // Reaplica colores base del horario guardado (funciones de base.html)
+    grid.querySelectorAll('.horario-bloque').forEach(b => {
+      delete b.dataset.ocupado;
+      const clave = `${b.dataset.dia}_${b.dataset.hora}`;
+      if (horarioGuardado.includes(clave)) { b.classList.add('disponible'); pintarVerde(b); }
+      else { b.classList.remove('disponible'); pintarGris(b); }
+    });
+
+    const pasados = _aplicarPasados(grid, data.fechas);
+
+    data.reservas.forEach(clave => {
+      const [dia, hora] = clave.split('_');
+      if (pasados.has(dia)) return;
+      const b = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+      if (b) { b.style.background = '#e74c3c'; b.style.borderColor = '#c0392b'; b.dataset.ocupado = 'true'; }
+    });
+    data.pendientes.forEach(clave => {
+      const [dia, hora] = clave.split('_');
+      if (pasados.has(dia)) return;
+      const b = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+      if (b) { b.style.background = '#f39c12'; b.style.borderColor = '#d68910'; b.dataset.ocupado = 'true'; }
+    });
+  }
+
+  async function navegarSemanaEst(delta) {
+    const nuevoOffset = semanaEstOffset + delta;
+    if (nuevoOffset < 0) return;
+    const res = await fetch(`/perfil/semana-est/?offset=${nuevoOffset}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    semanaEstOffset = data.offset;
+    document.getElementById('pest-semana-label').textContent = `${data.lunes_fmt} — ${data.sabado_fmt}`;
+    _actualizarBtnAnterior('btn-pest-anterior', semanaEstOffset);
+
+    const grid = document.getElementById('horario-grid-pest');
+    _actualizarFechas(grid, data);
+
+    // Resetear colores de celdas
+    grid.querySelectorAll('.horario-bloque').forEach(b => {
+      b.style.background = ''; b.style.borderColor = ''; b.style.pointerEvents = '';
+    });
+
+    const pasados = _aplicarPasados(grid, data.fechas);
+
+    data.reservas.forEach(r => {
+      if (pasados.has(r.dia)) return;
+      const b = grid.querySelector(`.horario-bloque[data-dia="${r.dia}"][data-hora="${r.hora}"]`);
+      if (!b) return;
+      if (r.estado === 'confirmada') { b.style.background = '#1a56a0'; b.style.borderColor = '#134488'; }
+      else if (r.estado === 'pendiente') { b.style.background = '#f39c12'; b.style.borderColor = '#d68910'; }
+    });
   }
 
   function mostrarTabProfEst(tab) {

@@ -94,7 +94,7 @@
         <p style="font-size:0.78rem; color:#555; margin-bottom:0.6rem;">Tuviste clase con este profesor. ¿Cómo fue?</p>
         <div style="display:flex; gap:0.3rem; margin-bottom:0.6rem;" id="estrellas">
           {% for i in "12345" %}
-            <span data-val="{{ i }}" onclick="seleccionarEstrella(+this.dataset.val)"
+            <span data-val="{{ i }}" onclick="seleccionarEstrella({{ i }})"
               style="font-size:1.6rem; cursor:pointer; color:#ddd; transition:color 0.15s;">★</span>
           {% endfor %}
         </div>

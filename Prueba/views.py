@@ -611,6 +611,60 @@ def gestionar_reserva(request):
 
     return JsonResponse({'ok': True})
 
+def semana_publica(request, user_id):
+    """API para obtener horario de una semana específica para perfil público"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'no auth'}, status=401)
+    
+    from datetime import date, timedelta
+    
+    profesor = User.objects.filter(id=user_id).first()
+    if not profesor:
+        return JsonResponse({'error': 'profesor no encontrado'}, status=404)
+    
+    offset = max(0, int(request.GET.get('offset', 0)))
+    
+    MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+    hoy = date.today()
+    lunes = hoy - timedelta(days=hoy.weekday()) + timedelta(weeks=offset)
+    sabado = lunes + timedelta(days=5)
+    dias = ['Lun','Mar','Mié','Jue','Vie','Sáb']
+    fechas = {d: lunes + timedelta(days=i) for i, d in enumerate(dias)}
+    
+    # Horario guardado del profesor
+    bloques = BloqueHorario.objects.filter(usuario=profesor).values_list('dia', 'hora')
+    horario_guardado = [f"{dia}_{hora}" for dia, hora in bloques]
+    
+    # Obtener reservas de la semana
+    reservas_semana = Reserva.objects.filter(
+        profesor=profesor,
+        fecha__in=list(fechas.values()),
+    )
+    reservas_json = [f"{r.dia}_{r.hora}" for r in reservas_semana if r.estado == 'confirmada']
+    pendientes_json = [f"{r.dia}_{r.hora}" for r in reservas_semana if r.estado == 'pendiente']
+    
+    # Obtener reservas del estudiante logueado para esta semana
+    mis_reservas_semana = []
+    if request.user.is_authenticated and request.user != profesor:
+        mis_reservas_semana = list(
+            Reserva.objects.filter(
+                profesor=profesor,
+                estudiante=request.user,
+                fecha__in=list(fechas.values()),
+            ).values('dia', 'hora', 'estado')
+        )
+    
+    return JsonResponse({
+        'offset': offset,
+        'lunes_fmt': f"{lunes.day} {MESES[lunes.month-1]}",
+        'sabado_fmt': f"{sabado.day} {MESES[sabado.month-1]} {sabado.year}",
+        'fechas': {d: f.isoformat() for d, f in fechas.items()},
+        'fechas_display': {d: f.strftime('%d/%m') for d, f in fechas.items()},
+        'horario_guardado': horario_guardado,
+        'reservas': reservas_json,
+        'pendientes': pendientes_json,
+        'mis_reservas': mis_reservas_semana,
+    })
 
 def notificaciones(request):
     if not request.user.is_authenticated:
@@ -651,6 +705,56 @@ def notificaciones(request):
         'grupos': [g for g in grupos if g['items']],
         'total':  len(notifs),
         'nuevas': len(nuevas_ids),
+    })
+
+
+def _semana_json(offset):
+    from datetime import date, timedelta
+    MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+    hoy    = date.today()
+    lunes  = hoy - timedelta(days=hoy.weekday()) + timedelta(weeks=offset)
+    sabado = lunes + timedelta(days=5)
+    dias   = ['Lun','Mar','Mié','Jue','Vie','Sáb']
+    fechas = {d: lunes + timedelta(days=i) for i, d in enumerate(dias)}
+    return lunes, sabado, fechas, {
+        'offset':         offset,
+        'lunes_fmt':      f"{lunes.day} {MESES[lunes.month-1]}",
+        'sabado_fmt':     f"{sabado.day} {MESES[sabado.month-1]} {sabado.year}",
+        'fechas':         {d: f.isoformat() for d, f in fechas.items()},
+        'fechas_display': {d: f.strftime('%d/%m') for d, f in fechas.items()},
+    }
+
+
+def semana_estudiante(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'no auth'}, status=401)
+
+    from datetime import date, timedelta
+
+    offset = max(0, int(request.GET.get('offset', 0)))
+    _, _, fechas_semana, base = _semana_json(offset)
+    reservas = list(
+        Reserva.objects.filter(
+            estudiante=request.user,
+            fecha__in=list(fechas_semana.values()),
+        ).values('dia', 'hora', 'estado')
+    )
+    return JsonResponse({**base, 'reservas': reservas})
+
+
+def semana_profesor(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'no auth'}, status=401)
+    offset = max(0, int(request.GET.get('offset', 0)))
+    _, _, fechas_semana, base = _semana_json(offset)
+    qs = Reserva.objects.filter(
+        profesor=request.user,
+        fecha__in=list(fechas_semana.values()),
+    )
+    return JsonResponse({
+        **base,
+        'reservas':   [f"{r.dia}_{r.hora}" for r in qs if r.estado == 'confirmada'],
+        'pendientes': [f"{r.dia}_{r.hora}" for r in qs if r.estado == 'pendiente'],
     })
 
 
