@@ -192,6 +192,34 @@
         </div>
       </div>
 
+      <!-- Horas agendadas como estudiante (solo visible en vista estudiante) -->
+      <div class="perfil-datos" id="seccion-horas-agendadas" style="display:none;">
+        <div class="perfil-seccion-titulo" style="padding:0.8rem 1.1rem 0.4rem;">
+          Mis horas agendadas
+        </div>
+        {% if mis_clases %}
+          {% for r in mis_clases %}
+            {% if r.estado != 'cancelada' %}
+            <div style="padding:0.9rem 1.1rem; border-bottom:1px solid #eef4fd;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
+                <span style="font-size:0.88rem; font-weight:700; color:#1a1a1a;">
+                  {% if r.fecha %}{{ r.fecha|date:"d/m/Y" }}{% else %}Sin fecha{% endif %} — {{ r.dia }} {{ r.hora }}
+                </span>
+                <span class="badge-reserva badge-{{ r.estado }}">{{ r.estado|capfirst }}</span>
+              </div>
+              <div style="font-size:0.78rem; color:#aaa;">
+                con {{ r.profesor.apodo|default:r.profesor.username }}
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <div style="padding:0.7rem 1.1rem 1rem; text-align:center;">
+            <p style="font-size:0.78rem; color:#bbb;">No tienes horas agendadas aún.</p>
+          </div>
+        {% endif %}
+      </div>
+
       <div class="perfil-acciones">
         <a href="{% url 'logout' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:block;">
           Cerrar sesión
@@ -203,6 +231,21 @@
     <!-- COLUMNA DERECHA PROFESOR: Horario -->
     <div class="perfil-der">
 
+      <!-- Toggle PROFESOR / ESTUDIANTE -->
+      <div style="display:flex; background:#f0f4f8; border-radius:10px; padding:3px; margin-bottom:1.2rem; gap:2px;">
+        <button id="toggle-profesor" onclick="cambiarVista('profesor')"
+          style="flex:1; padding:0.45rem 0; border:none; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; background:#1a56a0; color:#fff; transition:all 0.15s;">
+          PROFESOR
+        </button>
+        <button id="toggle-estudiante" onclick="cambiarVista('estudiante')"
+          style="flex:1; padding:0.45rem 0; border:none; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; background:transparent; color:#aaa; transition:all 0.15s;">
+          ESTUDIANTE
+        </button>
+      </div>
+
+      <!-- ── Vista Profesor ── -->
+      <div id="vista-profesor">
+
       <!-- Tabs -->
       <div style="display:flex; gap:0; border-bottom:2px solid #dce8f5; margin-bottom:1.2rem;">
         <button id="tab-horario" onclick="mostrarTabProf('horario')"
@@ -212,6 +255,10 @@
         <button id="tab-estudiantes" onclick="mostrarTabProf('estudiantes')"
           style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid transparent; font-size:0.85rem; font-weight:700; color:#aaa; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
           Mis estudiantes
+        </button>
+        <button id="tab-resenas" onclick="mostrarTabProf('resenas')"
+          style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid transparent; font-size:0.85rem; font-weight:700; color:#aaa; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+          Reseñas{% if total_mis_resenas %} <span style="font-size:0.7rem; color:#f5a623;">★ {{ mi_puntaje_promedio }}</span>{% endif %}
         </button>
       </div>
 
@@ -331,6 +378,137 @@
           </div>
         {% endif %}
       </div>
+
+      <!-- Panel: Mis reseñas -->
+      <div id="panel-resenas" style="display:none;">
+        {% if mis_resenas %}
+          <div style="padding:0.7rem 1.1rem 0.4rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eef4fd;">
+            <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#aaa;">{{ total_mis_resenas }} reseña{{ total_mis_resenas|pluralize }}</span>
+            {% if mi_puntaje_promedio %}
+              <span style="font-size:0.92rem; color:#f5a623; font-weight:700;">{{ mi_puntaje_promedio }} ★</span>
+            {% endif %}
+          </div>
+          {% for r in mis_resenas %}
+          <div style="padding:0.85rem 1.1rem; border-bottom:1px solid #eef4fd;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                {% if r.estudiante.foto %}
+                  <img src="{{ r.estudiante.foto }}" style="width:26px; height:26px; border-radius:50%; object-fit:cover;" />
+                {% else %}
+                  <div style="width:26px; height:26px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:#1a56a0;">{{ r.estudiante.username|first|upper }}</div>
+                {% endif %}
+                <span style="font-size:0.82rem; font-weight:600; color:#1a1a1a;">{{ r.estudiante.apodo|default:r.estudiante.username }}</span>
+              </div>
+              <span style="color:#f5a623; font-size:0.85rem;">{% for i in "12345" %}{% if forloop.counter <= r.puntaje %}★{% else %}☆{% endif %}{% endfor %}</span>
+            </div>
+            {% if r.comentario %}
+              <p style="font-size:0.78rem; color:#555; margin:0.2rem 0 0;">{{ r.comentario }}</p>
+            {% endif %}
+            <div style="font-size:0.7rem; color:#bbb; margin-top:0.3rem;">{{ r.creada_el|date:"d/m/Y" }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding:2.5rem; text-align:center;">
+            <p style="font-size:0.85rem; color:#bbb;">Aún no tienes reseñas.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      </div>{# fin vista-profesor #}
+
+      <!-- ── Vista Estudiante (embebida en perfil profesor) ── -->
+      <div id="vista-estudiante" style="display:none;">
+
+        <!-- Tabs -->
+        <div style="display:flex; gap:0; border-bottom:2px solid #dce8f5; margin-bottom:1.2rem;">
+          <button id="tab-pest-clases" onclick="mostrarTabProfEst('clases')"
+            style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid #1a56a0; font-size:0.85rem; font-weight:700; color:#1a56a0; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+            Mis clases
+          </button>
+          <button id="tab-pest-profesores" onclick="mostrarTabProfEst('profesores')"
+            style="flex:1; padding:0.65rem 0; background:none; border:none; border-bottom:3px solid transparent; font-size:0.85rem; font-weight:700; color:#aaa; cursor:pointer; font-family:inherit; margin-bottom:-2px;">
+            Mis profesores
+          </button>
+        </div>
+
+        <!-- Panel: Mis clases -->
+        <div id="panel-pest-clases">
+          {% if mis_clases %}
+            <div class="horario-header">
+              <div class="horario-titulo">Mis clases agendadas</div>
+              <div style="display:flex; align-items:center; gap:0.8rem; margin-top:0.5rem; margin-bottom:0.8rem;">
+                {% if semana_offset > 0 %}
+                  <a href="?semana={{ semana_offset|add:'-1' }}"
+                    style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">← Anterior</a>
+                {% else %}
+                  <span style="padding:0.3rem 0.7rem; background:#f5f5f0; border:1.5px solid #e8e8e3; border-radius:8px; font-size:0.78rem; font-weight:700; color:#bbb;">← Anterior</span>
+                {% endif %}
+                <span style="font-size:0.82rem; font-weight:600; color:#555;">{{ lunes|date:"d M" }} — {{ sabado|date:"d M Y" }}</span>
+                <a href="?semana={{ semana_offset|add:'1' }}"
+                  style="padding:0.3rem 0.7rem; background:#f0f4f8; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.78rem; font-weight:700; color:#1a56a0; text-decoration:none;">Siguiente →</a>
+              </div>
+              <p class="horario-sub">Amarillo: pendiente — Azul: confirmada.</p>
+            </div>
+            <div class="horario-grid" id="horario-grid-pest">
+              <div class="horario-vacia"></div>
+              {% for dia in dias %}
+                <div class="horario-dia" style="display:flex; flex-direction:column; align-items:center;">
+                  <span>{{ dia }}</span>
+                  <span style="font-size:0.6rem; color:#bbb; font-weight:500;">{{ fechas_semana|get_item:dia|date:"d/m" }}</span>
+                </div>
+              {% endfor %}
+              {% for hora in horas %}
+                <div class="horario-hora">{{ hora }}</div>
+                {% for dia in dias %}
+                  <div class="horario-bloque solo-lectura"
+                      data-hora="{{ hora }}" data-dia="{{ dia }}"
+                      data-fecha="{{ fechas_semana|get_item:dia }}">
+                  </div>
+                {% endfor %}
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="horario-header">
+              <div class="horario-titulo">Agenda tu primera clase</div>
+              <p class="horario-sub">Busca un profesor en el tablero y agenda una hora.</p>
+            </div>
+            <div style="display:flex; justify-content:center; margin-top:2rem;">
+              <a href="{% url 'tablero' %}" class="btn-submit" style="text-decoration:none; text-align:center; display:inline-block; width:auto; padding:0.75rem 2rem;">
+                Ir al tablero
+              </a>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Panel: Mis profesores -->
+        <div id="panel-pest-profesores" style="display:none;">
+          {% if mis_profesores %}
+            {% for prof in mis_profesores %}
+            <div style="display:flex; align-items:center; gap:1rem; padding:0.9rem 1.1rem; border-bottom:1px solid #eef4fd; background:#fff;">
+              {% if prof.foto %}
+                <img src="{{ prof.foto }}" alt="{{ prof.username }}" style="width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+              {% else %}
+                <div style="width:48px; height:48px; border-radius:50%; background:#dce8f5; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:#1a56a0; flex-shrink:0;">
+                  {{ prof.username|first|upper }}
+                </div>
+              {% endif %}
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:0.9rem; font-weight:700; color:#1a1a1a;">{{ prof.apodo|default:prof.username }}</div>
+                <div style="font-size:0.75rem; color:#aaa;">@{{ prof.username }}</div>
+                {% if prof.telefono %}
+                  <div style="font-size:0.78rem; color:#555; margin-top:0.2rem;">{{ prof.telefono|formato_telefono }}</div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="padding:2rem; text-align:center;">
+              <p style="font-size:0.85rem; color:#bbb;">Aún no tienes profesores agendados.</p>
+            </div>
+          {% endif %}
+        </div>
+
+      </div>{# fin vista-estudiante #}
 
     </div>
 
@@ -611,14 +789,42 @@
     document.getElementById('tab-est-profesores').style.borderBottomColor = esHorario ? 'transparent' : '#1a56a0';
   }
 
+  function cambiarVista(modo) {
+    const esProf = modo === 'profesor';
+    document.getElementById('vista-profesor').style.display          = esProf ? 'block' : 'none';
+    document.getElementById('vista-estudiante').style.display         = esProf ? 'none'  : 'block';
+    document.getElementById('seccion-ramos').style.display            = esProf ? 'block' : 'none';
+    document.getElementById('seccion-horas-agendadas').style.display  = esProf ? 'none'  : 'block';
+    document.getElementById('toggle-profesor').style.background       = esProf ? '#1a56a0'    : 'transparent';
+    document.getElementById('toggle-profesor').style.color            = esProf ? '#fff'        : '#aaa';
+    document.getElementById('toggle-estudiante').style.background     = esProf ? 'transparent' : '#1a56a0';
+    document.getElementById('toggle-estudiante').style.color          = esProf ? '#aaa'         : '#fff';
+  }
+
+  function mostrarTabProfEst(tab) {
+    const tabs = ['clases', 'profesores'];
+    tabs.forEach(t => {
+      const panel = document.getElementById('panel-pest-' + t);
+      const btn   = document.getElementById('tab-pest-' + t);
+      if (!panel || !btn) return;
+      const activo = t === tab;
+      panel.style.display         = activo ? 'block' : 'none';
+      btn.style.color             = activo ? '#1a56a0' : '#aaa';
+      btn.style.borderBottomColor = activo ? '#1a56a0' : 'transparent';
+    });
+  }
+
   function mostrarTabProf(tab) {
-    const esHorario = tab === 'horario';
-    document.getElementById('panel-horario').style.display     = esHorario ? 'block' : 'none';
-    document.getElementById('panel-estudiantes').style.display = esHorario ? 'none'  : 'block';
-    document.getElementById('tab-horario').style.color          = esHorario ? '#1a56a0' : '#aaa';
-    document.getElementById('tab-horario').style.borderBottomColor     = esHorario ? '#1a56a0' : 'transparent';
-    document.getElementById('tab-estudiantes').style.color      = esHorario ? '#aaa' : '#1a56a0';
-    document.getElementById('tab-estudiantes').style.borderBottomColor = esHorario ? 'transparent' : '#1a56a0';
+    const tabs = ['horario', 'estudiantes', 'resenas'];
+    tabs.forEach(t => {
+      const panel = document.getElementById('panel-' + t);
+      const btn   = document.getElementById('tab-' + t);
+      if (!panel || !btn) return;
+      const activo = t === tab;
+      panel.style.display          = activo ? 'block' : 'none';
+      btn.style.color              = activo ? '#1a56a0' : '#aaa';
+      btn.style.borderBottomColor  = activo ? '#1a56a0' : 'transparent';
+    });
   }
 
   async function gestionarReserva(btn) {
@@ -657,24 +863,25 @@
     });
   }, 150);
 
-  // ── Pintar horario del ESTUDIANTE ──
+  // ── Pintar horario del ESTUDIANTE (estudiante real + profesor en modo estudiante) ──
   const misReservasData = JSON.parse(document.getElementById('mis-reservas-data').textContent);
 
   setTimeout(() => {
-    const gridEst = document.getElementById('horario-grid-est');
-    if (!gridEst) return;
     const hoy = new Date(); hoy.setHours(0,0,0,0);
-
-    misReservasData.forEach(r => {
-      const b = gridEst.querySelector(`.horario-bloque[data-dia="${r.dia}"][data-hora="${r.hora}"]`);
-      if (!b || (b.dataset.fecha && new Date(b.dataset.fecha + 'T00:00:00') < hoy)) return;
-      if (r.estado === 'confirmada') {
-        b.style.background  = '#1a56a0';
-        b.style.borderColor = '#134488';
-      } else if (r.estado === 'pendiente') {
-        b.style.background  = '#f39c12';
-        b.style.borderColor = '#d68910';
-      }
+    ['horario-grid-est', 'horario-grid-pest'].forEach(id => {
+      const grid = document.getElementById(id);
+      if (!grid) return;
+      misReservasData.forEach(r => {
+        const b = grid.querySelector(`.horario-bloque[data-dia="${r.dia}"][data-hora="${r.hora}"]`);
+        if (!b || (b.dataset.fecha && new Date(b.dataset.fecha + 'T00:00:00') < hoy)) return;
+        if (r.estado === 'confirmada') {
+          b.style.background  = '#1a56a0';
+          b.style.borderColor = '#134488';
+        } else if (r.estado === 'pendiente') {
+          b.style.background  = '#f39c12';
+          b.style.borderColor = '#d68910';
+        }
+      });
     });
   }, 150);
 

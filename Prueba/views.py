@@ -68,38 +68,32 @@ def tablero(request):
         ],
     }
 
-    depto_activo = request.GET.get("depto", "")
-    ramo_activo  = request.GET.get("ramo", "")
+    from collections import defaultdict
 
-    if depto_activo not in ramos:
-        depto_activo = ""
-        ramo_activo  = ""
+    all_profs = User.objects.prefetch_related('ramos').filter(ramos__isnull=False).distinct()
+    prof_por_ramo = defaultdict(list)
+    for u in all_profs:
+        deptos = list({r.depto.replace('Ciencias - ', '') for r in u.ramos.all()})
+        entrada = {
+            "id":     u.id,
+            "nombre": u.apodo or u.username,
+            "foto":   u.foto or "",
+            "deptos": deptos,
+            "precio": float(u.precio or 0),
+        }
+        for r in u.ramos.all():
+            prof_por_ramo[r.nombre].append(entrada)
 
-    ramos_del_depto = ramos.get(depto_activo, [])
-    if ramo_activo not in ramos_del_depto:
-        ramo_activo = ""
-
-    profesores_filtrados = []
-    if ramo_activo:
-        ramo_obj = Ramo.objects.filter(nombre=ramo_activo).first()
-        if ramo_obj:
-            usuarios = User.objects.filter(ramos=ramo_obj)
-            for u in usuarios:
-                profesores_filtrados.append({
-                    "id":     u.id,
-                    "nombre": u.apodo or u.username,
-                    "foto":   u.foto if u.foto else None,
-                    "ramos":  list(u.ramos.values_list('nombre', flat=True)),
-                    "precio": u.precio,
-                })
+    profesores_por_ramo = {
+        nombre: prof_por_ramo.get(nombre, [])
+        for lista in ramos.values()
+        for nombre in lista
+    }
 
     return render(request, "tablero.html", {
         "titulo":          "¿Para qué prueba necesitas ayuda?",
-        "secciones":       list(ramos.keys()),
-        "ramos_del_depto": ramos_del_depto,
-        "depto_activo":    depto_activo,
-        "ramo_activo":     ramo_activo,
-        "profesores":      profesores_filtrados,
+        "ramos_json":      json.dumps(ramos, ensure_ascii=False),
+        "profesores_json": json.dumps(profesores_por_ramo, ensure_ascii=False),
     })
 
 
@@ -274,6 +268,11 @@ def perfil(request):
         reservas_recibidas__fecha__gte=hoy,
     ).distinct()
 
+    # Reseñas recibidas (solo para profesores)
+    mis_resenas = Resena.objects.filter(profesor=request.user).select_related('estudiante').order_by('-creada_el')
+    total_mis_resenas = mis_resenas.count()
+    mi_puntaje_promedio = round(sum(r.puntaje for r in mis_resenas) / total_mis_resenas, 1) if total_mis_resenas else None
+
     return render(request, 'perfil.html', {
         'user':               request.user,
         'horas':              horas,
@@ -294,6 +293,9 @@ def perfil(request):
         'semana_offset':      semana_offset,
         'lunes':              lunes,
         'sabado':             sabado,
+        'mis_resenas':           mis_resenas,
+        'total_mis_resenas':     total_mis_resenas,
+        'mi_puntaje_promedio':   mi_puntaje_promedio,
     })
 
 
@@ -615,11 +617,40 @@ def notificaciones(request):
         return HttpResponseRedirect('/login')
 
     from Prueba.models import Notificacion
-    notifs = Notificacion.objects.filter(usuario=request.user)
-    notifs.filter(leida=False).update(leida=True)
+    from datetime import timedelta
+
+    nuevas_ids = set(
+        Notificacion.objects.filter(usuario=request.user, leida=False).values_list('id', flat=True)
+    )
+    Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
+    notifs = list(Notificacion.objects.filter(usuario=request.user))
+
+    hoy           = timezone.localdate()
+    ayer          = hoy - timedelta(days=1)
+    inicio_semana = hoy - timedelta(days=7)
+
+    grupos = [
+        {'label': 'Hoy',         'items': []},
+        {'label': 'Ayer',        'items': []},
+        {'label': 'Esta semana', 'items': []},
+        {'label': 'Anteriores',  'items': []},
+    ]
+    for n in notifs:
+        n.es_nueva = n.id in nuevas_ids
+        fecha = timezone.localtime(n.creada_el).date()
+        if fecha == hoy:
+            grupos[0]['items'].append(n)
+        elif fecha == ayer:
+            grupos[1]['items'].append(n)
+        elif fecha >= inicio_semana:
+            grupos[2]['items'].append(n)
+        else:
+            grupos[3]['items'].append(n)
 
     return render(request, 'notificaciones.html', {
-        'notificaciones': notifs,
+        'grupos': [g for g in grupos if g['items']],
+        'total':  len(notifs),
+        'nuevas': len(nuevas_ids),
     })
 
 

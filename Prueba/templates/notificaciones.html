@@ -2,43 +2,120 @@
 {% block title %}Notificaciones — ProFinder{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width:700px;">
-  <div style="font-size:1.4rem; font-weight:800; letter-spacing:-0.04em; margin-bottom:1.5rem; color:#1a1a1a;">
-    Notificaciones
+<div class="container" style="max-width:660px;">
+
+<style>
+  .notif-card {
+    background: #fff;
+    border: 1.5px solid #eef4fd;
+    border-left-width: 4px;
+    border-radius: 14px;
+    padding: 1rem 1.15rem;
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    position: relative;
+    transition: box-shadow 0.15s;
+  }
+  .notif-card:hover { box-shadow: 0 2px 14px rgba(26,86,160,0.08); }
+
+  .notif-reserva_creada     { border-left-color: #f39c12; }
+  .notif-reserva_confirmada { border-left-color: #1a56a0; }
+  .notif-reserva_cancelada  { border-left-color: #e74c3c; }
+
+  .notif-icono {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .notif-reserva_creada     .notif-icono { background: #fff8e8; }
+  .notif-reserva_confirmada .notif-icono { background: #eaf1fb; }
+  .notif-reserva_cancelada  .notif-icono { background: #fdf0f0; }
+
+  .notif-badge {
+    display: inline-block;
+    font-size: 0.67rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 0.15rem 0.55rem; border-radius: 5px;
+  }
+  .notif-reserva_creada     .notif-badge { color: #b7770d; background: #fff3cd; }
+  .notif-reserva_confirmada .notif-badge { color: #1a56a0; background: #dce8f5; }
+  .notif-reserva_cancelada  .notif-badge { color: #c0392b; background: #fde8e8; }
+
+  .notif-nueva-dot {
+    position: absolute; top: 0.85rem; right: 0.9rem;
+    width: 7px; height: 7px;
+    border-radius: 50%; background: #1a56a0;
+  }
+  .notif-grupo-label {
+    font-size: 0.69rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.09em;
+    color: #bbb; margin-bottom: 0.65rem;
+  }
+</style>
+
+  <!-- Header -->
+  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.8rem;">
+    <div style="font-size:1.5rem; font-weight:800; letter-spacing:-0.04em; color:#1a1a1a;">Notificaciones</div>
+    {% if nuevas %}
+      <span style="font-size:0.78rem; font-weight:700; color:#1a56a0; background:#eaf1fb; padding:0.2rem 0.75rem; border-radius:20px;">
+        {{ nuevas }} nueva{{ nuevas|pluralize }}
+      </span>
+    {% endif %}
   </div>
 
-  {% if notificaciones %}
-    <div style="background:#fff; border:1.5px solid #dce8f5; border-radius:16px; overflow:hidden;">
-      {% for n in notificaciones %}
-        <div style="padding:1rem 1.3rem; border-bottom:1px solid #eef4fd; display:flex; gap:1rem; align-items:flex-start;">
+  {% if grupos %}
+    {% for grupo in grupos %}
+    <div style="margin-bottom:1.8rem;">
 
-          <!-- Ícono según tipo -->
-        <div class="notif-icono
-        {% if n.tipo == 'reserva_confirmada' %}notif-icono-confirmada
-        {% elif n.tipo == 'reserva_cancelada' %}notif-icono-cancelada
-        {% else %}notif-icono-creada{% endif %}">
-        {% if n.tipo == 'reserva_confirmada' %}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        {% elif n.tipo == 'reserva_cancelada' %}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        {% else %}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        {% endif %}
-        </div>
+      <div class="notif-grupo-label">{{ grupo.label }}</div>
 
-          <div style="flex:1;">
-            <div style="font-size:0.85rem; color:#1a1a1a; line-height:1.5;">{{ n.mensaje }}</div>
-            <div style="font-size:0.72rem; color:#bbb; margin-top:0.3rem;">
-              {{ n.creada_el|date:"d/m/Y H:i" }}
+      <div style="display:flex; flex-direction:column; gap:0.55rem;">
+        {% for n in grupo.items %}
+        <div class="notif-card notif-{{ n.tipo }}">
+
+          {% if n.es_nueva %}<div class="notif-nueva-dot"></div>{% endif %}
+
+          <!-- Ícono -->
+          <div class="notif-icono">
+            {% if n.tipo == 'reserva_confirmada' %}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            {% elif n.tipo == 'reserva_cancelada' %}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            {% else %}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            {% endif %}
+          </div>
+
+          <!-- Contenido -->
+          <div style="flex:1; min-width:0;">
+            <div style="margin-bottom:0.35rem;">
+              <span class="notif-badge">{{ n.get_tipo_display }}</span>
+            </div>
+            <div style="font-size:0.87rem; color:#1a1a1a; line-height:1.55;">{{ n.mensaje }}</div>
+            <div style="font-size:0.72rem; color:#bbb; margin-top:0.45rem;">
+              {{ n.creada_el|date:"d \d\e F \d\e Y" }} · {{ n.creada_el|time:"H:i" }}
             </div>
           </div>
 
         </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
+
     </div>
+    {% endfor %}
+
   {% else %}
-    <div style="background:#fff; border:1.5px solid #dce8f5; border-radius:16px; padding:3rem; text-align:center; color:#bbb; font-size:0.88rem;">
-      No tienes notificaciones aún.
+    <div style="background:#fff; border:1.5px solid #dce8f5; border-radius:16px; padding:4rem 2rem; text-align:center;">
+      <div style="width:56px; height:56px; border-radius:50%; background:#f0f4f8; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </div>
+      <div style="font-size:1rem; font-weight:700; color:#1a1a1a; margin-bottom:0.4rem;">Sin notificaciones</div>
+      <div style="font-size:0.82rem; color:#bbb;">Aquí aparecerán las actualizaciones sobre tus reservas.</div>
     </div>
   {% endif %}
 

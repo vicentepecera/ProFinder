@@ -99,7 +99,7 @@
       {% endif %}
 
       <!-- Logo SVG -->
-      <a href="{% url 'inicio' %}" style="text-decoration:none; display:flex; align-items:center;">
+      <a href="{% if request.user.is_authenticated %}{% url 'tablero' %}{% else %}{% url 'inicio' %}{% endif %}" style="text-decoration:none; display:flex; align-items:center;">
         <svg height="36" viewBox="0 0 340 60" xmlns="http://www.w3.org/2000/svg">
           <!-- Lupa: círculo -->
           <circle cx="22" cy="26" r="14" fill="none" stroke="#fff" stroke-width="3.5"/>
@@ -325,6 +325,8 @@
     document.getElementById('ramos-editar').style.display = 'block';
     document.getElementById('btn-editar-ramos').style.display   = 'none';
     document.getElementById('btn-ramos-acciones').style.display = 'flex';
+    const deptos = new Set([...document.querySelectorAll('.ramo-checkbox')].map(c => c.dataset.depto));
+    deptos.forEach(d => actualizarCheckDepto(d));
   }
 
   function descartarRamos() {
@@ -374,17 +376,8 @@
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
       body: JSON.stringify({ ramos, precio })
     });
-    if (res.ok) {
-      document.getElementById('precio-display').innerHTML =
-        `$${precio.toLocaleString('es-CL')} <span>/ hr</span>`;
-      const lista   = document.getElementById('ramos-display');
-      const nombres = [...document.querySelectorAll('.ramo-checkbox:checked')]
-        .map(c => c.closest('label').textContent.trim());
-      lista.innerHTML = nombres.length
-        ? nombres.map(n => `<div class="perfil-ramo-tag">${n}</div>`).join('')
-        : '<p style="font-size:0.78rem; color:#bbb; padding:0.5rem 0;">Sin ramos asignados.</p>';
-      cerrarEdicionRamos();
-    } else { alert('Error al guardar. Intenta de nuevo.'); }
+    if (res.ok) { location.reload(); }
+    else { alert('Error al guardar. Intenta de nuevo.'); }
   }
 
   // ── Avatar dropdown ──
