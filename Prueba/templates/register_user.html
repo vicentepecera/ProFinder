@@ -16,7 +16,7 @@
     <h2>Crear cuenta</h2>
     <p class="subtitulo">Completa tus datos para registrarte en ProFinder</p>
 
-    <form method="post">
+    <form method="post" novalidate id="form-registro">
       {% csrf_token %}
 
       <!-- Selector de rol -->
@@ -24,95 +24,111 @@
         <label>¿Cómo quieres usar ProFinder?</label>
         <div style="display:flex; gap:0.6rem; margin-top:0.2rem;">
           <label id="card-estudiante" onclick="seleccionarRol('estudiante')" style="
-            flex:1; padding:0.9rem; border:2px solid #1a56a0; border-radius:12px;
-            cursor:pointer; text-align:center; transition:all 0.13s; background:#eef4fd;">
-            <input type="radio" name="rol" value="estudiante" style="display:none;" checked>
+            flex:1; padding:0.9rem; border:2px solid {% if prev.rol == 'profesor' %}#dce8f5{% else %}#1a56a0{% endif %}; border-radius:12px;
+            cursor:pointer; text-align:center; transition:all 0.13s; background:{% if prev.rol == 'profesor' %}#f5f9ff{% else %}#eef4fd{% endif %};">
+            <input type="radio" name="rol" value="estudiante" style="display:none;" {% if prev.rol != 'profesor' %}checked{% endif %}>
             <div style="margin-bottom:0.4rem; display:flex; justify-content:center;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
             </div>
-            <div style="font-size:0.82rem; font-weight:700; color:#1a1a1a;">Estudiante</div>
-            <div style="font-size:0.72rem; color:#aaa; margin-top:0.2rem;">Busco clases</div>
+            <div style="font-size:0.82rem; font-weight:700;">Estudiante</div>
+            <div style="font-size:0.72rem; color:#aaa;">Busco clases</div>
           </label>
+
           <label id="card-profesor" onclick="seleccionarRol('profesor')" style="
-            flex:1; padding:0.9rem; border:2px solid #dce8f5; border-radius:12px;
-            cursor:pointer; text-align:center; transition:all 0.13s; background:#f5f9ff;">
-            <input type="radio" name="rol" value="profesor" style="display:none;">
+            flex:1; padding:0.9rem; border:2px solid {% if prev.rol == 'profesor' %}#1a56a0{% else %}#dce8f5{% endif %}; border-radius:12px;
+            cursor:pointer; text-align:center; transition:all 0.13s; background:{% if prev.rol == 'profesor' %}#eef4fd{% else %}#f5f9ff{% endif %};">
+            <input type="radio" name="rol" value="profesor" style="display:none;" {% if prev.rol == 'profesor' %}checked{% endif %}>
             <div style="margin-bottom:0.4rem; display:flex; justify-content:center;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
             </div>
-            <div style="font-size:0.82rem; font-weight:700; color:#1a1a1a;">Profesor</div>
-            <div style="font-size:0.72rem; color:#aaa; margin-top:0.2rem;">Doy clases (y también puedo tomar)</div>
+            <div style="font-size:0.82rem; font-weight:700;">Profesor</div>
+            <div style="font-size:0.72rem; color:#aaa;">Doy clases</div>
           </label>
         </div>
       </div>
 
+      <!-- Datos -->
       <div class="field">
-        <label for="nombre_usuario">Nombre de usuario</label>
-        <input type="text" id="nombre_usuario" name="nombre" placeholder="Tu nombre de usuario" required autofocus />
+        <label>Nombre de usuario</label>
+        <input type="text" name="nombre" id="inp-nombre" value="{{ prev.nombre }}"
+          style="{% if errores.nombre %}border-color:#e74c3c;{% endif %}" />
+        {% if errores.nombre %}<span class="campo-error">{{ errores.nombre }}</span>{% endif %}
       </div>
 
       <div class="field">
-        <label for="apodo">Nombre completo</label>
-        <input type="text" id="apodo" name="apodo" placeholder="Ingrese su nombre completo" required />
+        <label>Nombre completo</label>
+        <input type="text" name="apodo" id="inp-apodo" value="{{ prev.apodo }}"
+          style="{% if errores.apodo %}border-color:#e74c3c;{% endif %}" />
+        {% if errores.apodo %}<span class="campo-error">{{ errores.apodo }}</span>{% endif %}
       </div>
 
       <div class="field">
-        <label for="mail">Correo electrónico</label>
-        <input type="email" id="mail" name="mail" placeholder="tucorreo@ejemplo.com" required />
+        <label>Email</label>
+        <input type="email" name="mail" id="inp-mail" value="{{ prev.mail }}"
+          style="{% if errores.mail %}border-color:#e74c3c;{% endif %}" />
+        {% if errores.mail %}<span class="campo-error">{{ errores.mail }}</span>{% endif %}
       </div>
 
       <div class="field">
-        <label for="telefono">Número de teléfono</label>
-        <input type="tel" id="telefono" name="telefono" placeholder="+56 9 1234 5678" />
+        <label>Teléfono</label>
+        <input type="tel" name="telefono" value="{{ prev.telefono }}" />
       </div>
 
-      <!-- Soy — solo visible para profesores -->
-      <div class="field" id="campo-tipo" style="display:none;">
+      <!-- CIUDAD -->
+      <div class="field">
+        <label for="ciudad">Ciudad</label>
+        <select id="ciudad" name="ciudad"
+          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid {% if errores.ciudad %}#e74c3c{% else %}#dce8f5{% endif %}; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+          <option value="" disabled {% if not prev.ciudad %}selected{% endif %}>Elige tu ciudad</option>
+          {% for value, label in ciudades %}
+            <option value="{{ value }}" {% if prev.ciudad == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errores.ciudad %}<span class="campo-error">{{ errores.ciudad }}</span>{% endif %}
+      </div>
+
+      <!-- TIPO -->
+      <div class="field" id="campo-tipo" style="display:{% if prev.rol == 'profesor' %}block{% else %}none{% endif %};">
         <label for="tipo">Soy</label>
         <select id="tipo" name="tipo" onchange="toggleTipo(this.value)"
-          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
-          <option value="" disabled selected>Elige una opción</option>
-          <option value="estudiante">Estudiante</option>
-          <option value="trabajador">Trabajador/a</option>
+          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid {% if errores.tipo %}#e74c3c{% else %}#dce8f5{% endif %}; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+          <option value="" disabled {% if not prev.tipo %}selected{% endif %}>Elige una opción</option>
+          {% for value, label in tipos %}
+            <option value="{{ value }}" {% if prev.tipo == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
         </select>
+        {% if errores.tipo %}<span class="campo-error">{{ errores.tipo }}</span>{% endif %}
       </div>
 
-      <div class="field" id="campo-carrera" style="display:none;">
+      <!-- CARRERA -->
+      <div class="field" id="campo-carrera" style="display:{% if prev.tipo == 'estudiante' %}block{% else %}none{% endif %};">
         <label for="carrera">Carrera</label>
         <select id="carrera" name="carrera"
           style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
-          <option value="" disabled selected>Elige tu carrera</option>
-          <option value="ing_civil">Ingeniería Civil</option>
-          <option value="ing_comercial">Ingeniería Comercial</option>
-          <option value="medicina">Medicina</option>
-          <option value="derecho">Derecho</option>
-          <option value="psicologia">Psicología</option>
-          <option value="pedagogia">Pedagogía</option>
-          <option value="arquitectura">Arquitectura</option>
-          <option value="administracion">Administración de Empresas</option>
-          <option value="otro">Otro</option>
+          <option value="" disabled {% if not prev.carrera %}selected{% endif %}>Elige tu carrera</option>
+          {% for value, label in carreras %}
+            <option value="{{ value }}" {% if prev.carrera == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
         </select>
       </div>
 
-      <div class="field" id="campo-empleo" style="display:none;">
+      <!-- EMPLEO -->
+      <div class="field" id="campo-empleo" style="display:{% if prev.tipo == 'trabajador' %}block{% else %}none{% endif %};">
         <label for="empleo">Ocupación</label>
         <select id="empleo" name="empleo"
           style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
-          <option value="" disabled selected>Elige tu ocupación</option>
-          <option value="profesor">Profesor/a</option>
-          <option value="ingeniero">Ingeniero/a</option>
-          <option value="medico">Médico/a</option>
-          <option value="abogado">Abogado/a</option>
-          <option value="contador">Contador/a</option>
-          <option value="diseñador">Diseñador/a</option>
-          <option value="estudiante_posgrado">Estudiante de posgrado</option>
-          <option value="otro">Otro</option>
+          <option value="" disabled {% if not prev.empleo %}selected{% endif %}>Elige tu ocupación</option>
+          {% for value, label in empleos %}
+            <option value="{{ value }}" {% if prev.empleo == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
         </select>
       </div>
 
       <div class="field">
         <label for="contraseña">Contraseña</label>
-        <input type="password" id="contraseña" name="contraseña" placeholder="••••••••" required />
+        <input type="password" name="contraseña" id="inp-contrasena"
+          style="{% if errores.contraseña %}border-color:#e74c3c;{% endif %}" />
+        {% if errores.contraseña %}<span class="campo-error">{{ errores.contraseña }}</span>{% endif %}
       </div>
 
       <button type="submit" class="btn-submit">Crear cuenta</button>
@@ -125,32 +141,74 @@
   </div>
 </div>
 
+<style>
+  .campo-error { display:block; color:#e74c3c; font-size:0.75rem; margin-top:0.25rem; }
+</style>
+
 <script>
-  function seleccionarRol(rol) {
-    const cards = { estudiante: 'card-estudiante', profesor: 'card-profesor' };
-    Object.keys(cards).forEach(r => {
-      const card  = document.getElementById(cards[r]);
-      const radio = card.querySelector('input[type="radio"]');
-      if (r === rol) {
-        card.style.border     = '2px solid #1a56a0';
-        card.style.background = '#eef4fd';
-        radio.checked = true;
-      } else {
-        card.style.border     = '2px solid #dce8f5';
-        card.style.background = '#f5f9ff';
-        radio.checked = false;
+function seleccionarRol(rol) {
+  const cards = { estudiante: 'card-estudiante', profesor: 'card-profesor' };
+  Object.keys(cards).forEach(r => {
+    const card  = document.getElementById(cards[r]);
+    const radio = card.querySelector('input[type="radio"]');
+    if (r === rol) {
+      card.style.border = '2px solid #1a56a0';
+      card.style.background = '#eef4fd';
+      radio.checked = true;
+    } else {
+      card.style.border = '2px solid #dce8f5';
+      card.style.background = '#f5f9ff';
+      radio.checked = false;
+    }
+  });
+
+  document.getElementById('campo-tipo').style.display = rol === 'profesor' ? 'block' : 'none';
+  document.getElementById('campo-carrera').style.display = 'none';
+  document.getElementById('campo-empleo').style.display = 'none';
+}
+
+function toggleTipo(valor) {
+  document.getElementById('campo-carrera').style.display = valor === 'estudiante' ? 'block' : 'none';
+  document.getElementById('campo-empleo').style.display = valor === 'trabajador' ? 'block' : 'none';
+}
+
+// Validación client-side
+document.getElementById('form-registro').addEventListener('submit', function(e) {
+  let valido = true;
+
+  function validar(inputId, errorMsg) {
+    const el  = document.getElementById(inputId);
+    if (!el) return;
+    const val = el.value.trim();
+    let err   = el.parentElement.querySelector('.campo-error-js');
+    if (!val) {
+      el.style.borderColor = '#e74c3c';
+      if (!err) {
+        err = document.createElement('span');
+        err.className = 'campo-error campo-error-js';
+        el.after(err);
       }
-    });
-
-    // "Soy" solo aparece para profesores
-    document.getElementById('campo-tipo').style.display    = rol === 'profesor' ? 'block' : 'none';
-    document.getElementById('campo-carrera').style.display = 'none';
-    document.getElementById('campo-empleo').style.display  = 'none';
+      err.textContent = errorMsg;
+      valido = false;
+    } else {
+      el.style.borderColor = '';
+      if (err) err.remove();
+    }
   }
 
-  function toggleTipo(valor) {
-    document.getElementById('campo-carrera').style.display = valor === 'estudiante' ? 'block' : 'none';
-    document.getElementById('campo-empleo').style.display  = valor === 'trabajador'  ? 'block' : 'none';
+  validar('inp-nombre',    'Ingresa un nombre de usuario.');
+  validar('inp-apodo',     'Ingresa tu nombre completo.');
+  validar('inp-mail',      'Ingresa tu correo electrónico.');
+  validar('ciudad',        'Selecciona tu ciudad.');
+  validar('inp-contrasena','Ingresa una contraseña.');
+
+  const rol = document.querySelector('input[name="rol"]:checked')?.value;
+  if (rol === 'profesor') {
+    validar('tipo', 'Selecciona una opción.');
   }
+
+  if (!valido) e.preventDefault();
+});
 </script>
+
 {% endblock %}

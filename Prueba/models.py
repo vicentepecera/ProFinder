@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from categorias.models import Categoria
 from django.contrib.auth.models import AbstractUser
+from .choices import TIPO_CHOICES, CARRERAS, EMPLEOS, CIUDADES, ROL_CHOICES
 
 class Ramo(models.Model):
     DEPTOS = [
@@ -20,36 +21,6 @@ class Ramo(models.Model):
         return self.nombre
 
 class User(AbstractUser):
-    TIPO_CHOICES = [
-        ('estudiante', 'Estudiante'),
-        ('trabajador', 'Trabajador'),
-    ]
-    CARRERAS = [
-        ('ing_civil', 'Ingeniería Civil'),
-        ('ing_comercial', 'Ingeniería Comercial'),
-        ('medicina', 'Medicina'),
-        ('derecho', 'Derecho'),
-        ('psicologia', 'Psicología'),
-        ('pedagogia', 'Pedagogía'),
-        ('arquitectura', 'Arquitectura'),
-        ('administracion', 'Administración de Empresas'),
-        ('otro', 'Otro'),
-    ]
-    EMPLEOS = [
-        ('profesor', 'Profesor/a'),
-        ('ingeniero', 'Ingeniero/a'),
-        ('medico', 'Médico/a'),
-        ('abogado', 'Abogado/a'),
-        ('contador', 'Contador/a'),
-        ('diseñador', 'Diseñador/a'),
-        ('estudiante_posgrado', 'Estudiante de posgrado'),
-        ('otro', 'Otro'),
-    ]
-
-    ROL_CHOICES = [
-    ('estudiante', 'Estudiante'),
-    ('profesor', 'Profesor'),
-]
 
     rol           = models.CharField(max_length=15, choices=ROL_CHOICES, default='estudiante')
     ramos_tomados = models.ManyToManyField('Ramo', blank=True, related_name='estudiantes')
@@ -63,6 +34,7 @@ class User(AbstractUser):
     tipo      = models.CharField(max_length=20, choices=TIPO_CHOICES, default='estudiante')
     carrera   = models.CharField(max_length=30, choices=CARRERAS, blank=True, default='')
     empleo    = models.CharField(max_length=30, choices=EMPLEOS, blank=True, default='')
+    ciudad = models.CharField(max_length=30, choices=CIUDADES, blank=True, default='')
 
 class BloqueHorario(models.Model):
     DIAS = [('Lun','Lun'),('Mar','Mar'),('Mié','Mié'),('Jue','Jue'),('Vie','Vie'),('Sáb','Sáb')]

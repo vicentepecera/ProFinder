@@ -71,6 +71,24 @@
   <div id="seccion-profesores" style="display:none;">
     <div class="profesores-seccion">
       <div class="profesores-titulo" id="profesores-titulo"></div>
+
+      <!-- Filtros -->
+      <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem; padding:0.75rem 1rem; background:#f5f9ff; border:1.5px solid #dce8f5; border-radius:12px;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <label style="font-size:0.75rem; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:0.06em; white-space:nowrap;">Ciudad</label>
+          <select id="filtro-ciudad" onchange="aplicarFiltros()"
+            style="padding:0.38rem 0.7rem; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.82rem; font-family:inherit; color:#1a1a1a; background:#fff; outline:none;">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <label style="font-size:0.75rem; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:0.06em; white-space:nowrap;">Precio máx.</label>
+          <input type="number" id="filtro-precio" placeholder="Sin límite" min="0" step="500"
+            oninput="aplicarFiltros()"
+            style="width:120px; padding:0.38rem 0.7rem; border:1.5px solid #dce8f5; border-radius:8px; font-size:0.82rem; font-family:inherit; color:#1a1a1a; background:#fff; outline:none;">
+        </div>
+      </div>
+
       <div class="profesores-lista" id="profesores-lista"></div>
     </div>
   </div>
@@ -85,11 +103,41 @@
 <script>
   const ramosData      = JSON.parse(document.getElementById('ramos-data').textContent);
   const profesoresData = JSON.parse(document.getElementById('profesores-data').textContent);
-  let deptoActivo = null;
-  let ramoActivo  = null;
+  let deptoActivo    = null;
+  let ramoActivo     = null;
+  let profesActuales = [];
 
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderProfesor(p) {
+    return `
+      <a href="/perfil/${p.id}/" class="profesor-item" style="text-decoration:none;">
+        ${p.foto
+          ? `<img class="profesor-foto" src="${esc(p.foto)}" alt="${esc(p.nombre)}" />`
+          : `<div class="profesor-foto-placeholder">${esc(p.nombre[0])}</div>`
+        }
+        <div class="profesor-info">
+          <div class="profesor-nombre">${esc(p.nombre)}</div>
+          <div class="profesor-ramos">${esc(p.deptos.join(', '))}${p.ciudad_label ? ' · ' + esc(p.ciudad_label) : ''}</div>
+        </div>
+        <div class="profesor-precio">$${p.precio.toLocaleString('es-CL')}<span>/ hr</span></div>
+      </a>`;
+  }
+
+  function aplicarFiltros() {
+    const ciudad   = document.getElementById('filtro-ciudad').value;
+    const precioStr = document.getElementById('filtro-precio').value;
+    const precioMax = precioStr !== '' ? parseFloat(precioStr) : Infinity;
+
+    const filtrados = profesActuales.filter(p =>
+      (!ciudad || p.ciudad === ciudad) && p.precio <= precioMax
+    );
+
+    document.getElementById('profesores-lista').innerHTML = filtrados.length
+      ? filtrados.map(renderProfesor).join('')
+      : '<div class="vacio">No hay profesores que coincidan con los filtros.</div>';
   }
 
   function seleccionarDepto(depto) {
@@ -112,31 +160,26 @@
   }
 
   function seleccionarRamo(ramo) {
-    ramoActivo = ramo;
+    ramoActivo     = ramo;
+    profesActuales = profesoresData[ramo] || [];
 
     document.querySelectorAll('.ramo-btn').forEach(b =>
       b.classList.toggle('activo', b.dataset.ramo === ramo)
     );
 
-    const profs = profesoresData[ramo] || [];
-    document.getElementById('profesores-titulo').textContent = `Profesores que imparten «${ramo}»`;
-    document.getElementById('profesores-lista').innerHTML = profs.length
-      ? profs.map(p => `
-          <a href="/perfil/${p.id}/" class="profesor-item" style="text-decoration:none;">
-            ${p.foto
-              ? `<img class="profesor-foto" src="${esc(p.foto)}" alt="${esc(p.nombre)}" />`
-              : `<div class="profesor-foto-placeholder">${esc(p.nombre[0])}</div>`
-            }
-            <div class="profesor-info">
-              <div class="profesor-nombre">${esc(p.nombre)}</div>
-              <div class="profesor-ramos">${esc(p.deptos.join(', '))}</div>
-            </div>
-            <div class="profesor-precio">$${p.precio.toLocaleString('es-CL')}<span>/ hr</span></div>
-          </a>`
-        ).join('')
-      : '<div class="vacio">No hay profesores disponibles para este ramo.</div>';
+    // Poblar selector de ciudades con las que tienen profesores en este ramo
+    const ciudadSel = document.getElementById('filtro-ciudad');
+    const ciudadesPresentes = [...new Map(
+      profesActuales.filter(p => p.ciudad).map(p => [p.ciudad, p.ciudad_label])
+    )].sort((a, b) => a[1].localeCompare(b[1]));
+    ciudadSel.innerHTML = '<option value="">Todas</option>' +
+      ciudadesPresentes.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+    ciudadSel.value = '';
+    document.getElementById('filtro-precio').value = '';
 
+    document.getElementById('profesores-titulo').textContent = `Profesores que imparten «${ramo}»`;
     document.getElementById('seccion-profesores').style.display = 'block';
+    aplicarFiltros();
     actualizarBreadcrumb();
   }
 

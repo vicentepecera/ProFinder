@@ -44,6 +44,10 @@
         </div>
         <div id="datos-ver">
           <div class="perfil-fila">
+            <span class="perfil-label">Ciudad</span>
+            <span class="perfil-valor" id="ciudad-display">{{ user.ciudad|default:"No especificado" }}</span>
+          </div>
+          <div class="perfil-fila">
             <span class="perfil-label">Correo</span>
             <span class="perfil-valor">{{ user.email|default:"No especificado" }}</span>
           </div>
@@ -68,6 +72,15 @@
           </div>
         </div>
         <div id="datos-editar" style="display:none; padding:0.7rem 1.1rem 1rem;">
+          <div class="field" style="margin-bottom:0.8rem;">
+            <label>Ciudad</label>
+            <select id="ciudad-input" name="ciudad" style="width:100%; padding:0.55rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.85rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+              <option value="" disabled selected>Elige tu ciudad</option>
+              {% for value, label in ciudades %}
+                <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
           <div class="field" style="margin-bottom:0.8rem;">
             <label>Teléfono</label>
             <input type="tel" id="telefono-input" value="{{ user.telefono }}" placeholder="+56 9 1234 5678"
@@ -128,40 +141,40 @@
             <button onclick="descartarRamos()" class="btn-horario btn-horario-descartar" style="font-size:0.7rem; padding:0.25rem 0.7rem;">Descartar</button>
           </div>
         </div>
-<div id="ramos-ver">
-  <div style="padding:0.5rem 1.1rem 0.2rem;">
-    {% regroup user.ramos.all by depto as mis_ramos_agrupados %}
+        <div id="ramos-ver">
+          <div style="padding:0.5rem 1.1rem 0.2rem;">
+            {% regroup user.ramos.all by depto as mis_ramos_agrupados %}
 
-    {% for grupo in mis_ramos_agrupados %}
-      <details class="ramo-grupo">
+            {% for grupo in mis_ramos_agrupados %}
+              <details class="ramo-grupo">
 
-        <!-- HEADER -->
-        <summary class="ramo-header">
-          {{ grupo.grouper }}
-          <span class="ramo-arrow">▸</span>
-        </summary>
+                <!-- HEADER -->
+                <summary class="ramo-header">
+                  {{ grupo.grouper }}
+                  <span class="ramo-arrow">▸</span>
+                </summary>
 
-        <!-- CONTENIDO -->
-        <div class="ramo-contenido">
-          {% for ramo in grupo.list %}
-            <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
-          {% endfor %}
+                <!-- CONTENIDO -->
+                <div class="ramo-contenido">
+                  {% for ramo in grupo.list %}
+                    <div class="perfil-ramo-tag">{{ ramo.nombre }}</div>
+                  {% endfor %}
+                </div>
+
+              </details>
+
+            {% empty %}
+              <p class="ramo-vacio">Sin ramos asignados.</p>
+            {% endfor %}
+          </div>
+
+          <div class="perfil-fila">
+            <span class="perfil-label">Precio</span>
+            <span class="perfil-valor perfil-precio" id="precio-display">
+              ${{ user.precio|default:0 }} <span>/ hr</span>
+            </span>
+          </div>
         </div>
-
-      </details>
-
-    {% empty %}
-      <p class="ramo-vacio">Sin ramos asignados.</p>
-    {% endfor %}
-  </div>
-
-  <div class="perfil-fila">
-    <span class="perfil-label">Precio</span>
-    <span class="perfil-valor perfil-precio" id="precio-display">
-      ${{ user.precio|default:0 }} <span>/ hr</span>
-    </span>
-  </div>
-</div>
         <div id="ramos-editar" style="display:none; padding:0.7rem 1.1rem 1rem;">
           {% for depto, ramos_lista in ramos_por_depto.items %}
             <div style="margin-bottom:0.8rem;">
@@ -708,6 +721,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
       body: JSON.stringify({
+        ciudad: document.getElementById('ciudad-input')?.value || '',
         telefono:  document.getElementById('telefono-input')?.value  || '',
         biografia: document.getElementById('biografia-input')?.value || '',
         tipo:      document.getElementById('tipo-input')?.value      || '',

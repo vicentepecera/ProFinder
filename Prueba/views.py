@@ -6,6 +6,7 @@ from django.utils import timezone
 from Prueba.models import User, BloqueHorario, Reserva, Resena
 from categorias.models import Categoria
 import json
+from .choices import TIPO_CHOICES, CARRERAS, EMPLEOS, CIUDADES, ROL_CHOICES
 
 
 def tablero(request):
@@ -69,17 +70,21 @@ def tablero(request):
     }
 
     from collections import defaultdict
+    from .choices import CIUDADES
+    ciudades_dict = dict(CIUDADES)
 
     all_profs = User.objects.prefetch_related('ramos').filter(ramos__isnull=False).distinct()
     prof_por_ramo = defaultdict(list)
     for u in all_profs:
         deptos = list({r.depto.replace('Ciencias - ', '') for r in u.ramos.all()})
         entrada = {
-            "id":     u.id,
-            "nombre": u.apodo or u.username,
-            "foto":   u.foto or "",
-            "deptos": deptos,
-            "precio": float(u.precio or 0),
+            "id":          u.id,
+            "nombre":      u.apodo or u.username,
+            "foto":        u.foto or "",
+            "deptos":      deptos,
+            "precio":      float(u.precio or 0),
+            "ciudad":      u.ciudad or "",
+            "ciudad_label": ciudades_dict.get(u.ciudad, "") if u.ciudad else "",
         }
         for r in u.ramos.all():
             prof_por_ramo[r.nombre].append(entrada)
@@ -108,22 +113,48 @@ def register_user(request):
     if request.method == 'GET':
         return render(request, "register_user.html", {
             'ramos_por_depto': ramos_por_depto,
+            'tipos': TIPO_CHOICES,
+            'carreras': CARRERAS,
+            'empleos': EMPLEOS,
+            'ciudades': CIUDADES,
+            'roles': ROL_CHOICES,
         })
 
     elif request.method == 'POST':
-        nombre     = request.POST['nombre']
-        contraseña = request.POST['contraseña']
-        apodo      = request.POST['apodo']
-        mail       = request.POST['mail']
+        nombre     = request.POST.get('nombre', '').strip()
+        contraseña = request.POST.get('contraseña', '')
+        apodo      = request.POST.get('apodo', '').strip()
+        mail       = request.POST.get('mail', '').strip()
         telefono   = request.POST.get('telefono', '')
         biografia  = request.POST.get('biografia', '')
-        tipo       = request.POST.get('tipo', 'estudiante')
+        tipo       = request.POST.get('tipo', '')
         carrera    = request.POST.get('carrera', '')
         empleo     = request.POST.get('empleo', '')
         rol        = request.POST.get('rol', 'estudiante')
+        ciudad     = request.POST.get('ciudad', '').strip()
         precio     = request.POST.get('precio', 0) or 0
         ramos_ids  = request.POST.getlist('ramos')
 
+        errores = {}
+        if not nombre:     errores['nombre']     = 'Ingresa un nombre de usuario.'
+        if not apodo:      errores['apodo']      = 'Ingresa tu nombre completo.'
+        if not mail:       errores['mail']       = 'Ingresa tu correo electrónico.'
+        if not ciudad:     errores['ciudad']     = 'Selecciona tu ciudad.'
+        if not contraseña: errores['contraseña'] = 'Ingresa una contraseña.'
+        if rol == 'profesor' and not tipo:
+            errores['tipo'] = 'Selecciona una opción.'
+
+        if errores:
+            ctx = {
+                'ramos_por_depto': ramos_por_depto,
+                'tipos': TIPO_CHOICES, 'carreras': CARRERAS,
+                'empleos': EMPLEOS, 'ciudades': CIUDADES, 'roles': ROL_CHOICES,
+                'errores': errores,
+                'prev': request.POST,
+            }
+            return render(request, "register_user.html", ctx)
+
+        tipo_final = tipo if rol == 'profesor' else 'estudiante'
         user = User.objects.create_user(
             username=nombre,
             password=contraseña,
@@ -131,10 +162,11 @@ def register_user(request):
             apodo=apodo,
             telefono=telefono,
             biografia=biografia,
-            tipo=tipo,
-            carrera=carrera if tipo == 'estudiante' else '',
-            empleo=empleo   if tipo == 'trabajador' else '',
+            tipo=tipo_final,
+            carrera=carrera if tipo_final == 'estudiante' else '',
+            empleo=empleo   if tipo_final == 'trabajador' else '',
             rol=rol,
+            ciudad=ciudad,
             precio=int(precio) if rol == 'profesor' else 0,
         )
 
@@ -150,7 +182,6 @@ def register_user(request):
 
         login(request, user)
         return HttpResponseRedirect('/tablero')
-
 
 def login_user(request):
     if request.method == 'GET':
@@ -296,6 +327,7 @@ def perfil(request):
         'mis_resenas':           mis_resenas,
         'total_mis_resenas':     total_mis_resenas,
         'mi_puntaje_promedio':   mi_puntaje_promedio,
+        'ciudades': CIUDADES,
     })
 
 
@@ -481,12 +513,14 @@ def guardar_datos(request):
         return JsonResponse({'error': 'No autenticado'}, status=401)
 
     data      = json.loads(request.body)
+    ciudad = data.get('ciudad', '')
     telefono  = data.get('telefono', '')
     biografia = data.get('biografia', '')
     tipo      = data.get('tipo', 'estudiante')
     carrera   = data.get('carrera', '')
     empleo    = data.get('empleo', '')
 
+    request.user.ciudad = ciudad
     request.user.telefono  = telefono
     request.user.biografia = biografia
     request.user.tipo      = tipo
@@ -613,9 +647,6 @@ def gestionar_reserva(request):
 
 def semana_publica(request, user_id):
     """API para obtener horario de una semana específica para perfil público"""
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'no auth'}, status=401)
-    
     from datetime import date, timedelta
     
     profesor = User.objects.filter(id=user_id).first()
