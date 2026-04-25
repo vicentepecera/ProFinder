@@ -23,10 +23,9 @@
       <div class="field">
         <label>¿Cómo quieres usar ProFinder?</label>
         <div style="display:flex; gap:0.6rem; margin-top:0.2rem;">
-          <label id="card-estudiante" onclick="seleccionarRol('estudiante')" style="
-            flex:1; padding:0.9rem; border:2px solid {% if prev.rol == 'profesor' %}#dce8f5{% else %}#1a56a0{% endif %}; border-radius:12px;
-            cursor:pointer; text-align:center; transition:all 0.13s; background:{% if prev.rol == 'profesor' %}#f5f9ff{% else %}#eef4fd{% endif %};">
-            <input type="radio" name="rol" value="estudiante" style="display:none;" {% if prev.rol != 'profesor' %}checked{% endif %}>
+          <label id="card-estudiante" onclick="seleccionarRol('estudiante')"
+            class="rol-card {% if prev.rol == 'profesor' %}rol-card-inactiva{% else %}rol-card-activa{% endif %}">
+            <input type="radio" name="rol" value="estudiante" class="rol-radio" {% if prev.rol != 'profesor' %}checked{% endif %}>
             <div style="margin-bottom:0.4rem; display:flex; justify-content:center;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
             </div>
@@ -34,10 +33,9 @@
             <div style="font-size:0.72rem; color:#aaa;">Busco clases</div>
           </label>
 
-          <label id="card-profesor" onclick="seleccionarRol('profesor')" style="
-            flex:1; padding:0.9rem; border:2px solid {% if prev.rol == 'profesor' %}#1a56a0{% else %}#dce8f5{% endif %}; border-radius:12px;
-            cursor:pointer; text-align:center; transition:all 0.13s; background:{% if prev.rol == 'profesor' %}#eef4fd{% else %}#f5f9ff{% endif %};">
-            <input type="radio" name="rol" value="profesor" style="display:none;" {% if prev.rol == 'profesor' %}checked{% endif %}>
+          <label id="card-profesor" onclick="seleccionarRol('profesor')"
+            class="rol-card {% if prev.rol == 'profesor' %}rol-card-activa{% else %}rol-card-inactiva{% endif %}">
+            <input type="radio" name="rol" value="profesor" class="rol-radio" {% if prev.rol == 'profesor' %}checked{% endif %}>
             <div style="margin-bottom:0.4rem; display:flex; justify-content:center;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a56a0" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
             </div>
@@ -51,21 +49,21 @@
       <div class="field">
         <label>Nombre de usuario</label>
         <input type="text" name="nombre" id="inp-nombre" value="{{ prev.nombre }}"
-          style="{% if errores.nombre %}border-color:#e74c3c;{% endif %}" />
+          class="{% if errores.nombre %}input-error{% endif %}" />
         {% if errores.nombre %}<span class="campo-error">{{ errores.nombre }}</span>{% endif %}
       </div>
 
       <div class="field">
         <label>Nombre completo</label>
         <input type="text" name="apodo" id="inp-apodo" value="{{ prev.apodo }}"
-          style="{% if errores.apodo %}border-color:#e74c3c;{% endif %}" />
+          class="{% if errores.apodo %}input-error{% endif %}" />
         {% if errores.apodo %}<span class="campo-error">{{ errores.apodo }}</span>{% endif %}
       </div>
 
       <div class="field">
         <label>Email</label>
         <input type="email" name="mail" id="inp-mail" value="{{ prev.mail }}"
-          style="{% if errores.mail %}border-color:#e74c3c;{% endif %}" />
+          class="{% if errores.mail %}input-error{% endif %}" />
         {% if errores.mail %}<span class="campo-error">{{ errores.mail }}</span>{% endif %}
       </div>
 
@@ -77,8 +75,7 @@
       <!-- CIUDAD -->
       <div class="field">
         <label for="ciudad">Ciudad</label>
-        <select id="ciudad" name="ciudad"
-          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid {% if errores.ciudad %}#e74c3c{% else %}#dce8f5{% endif %}; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+        <select id="ciudad" name="ciudad" class="form-select {% if errores.ciudad %}input-error{% endif %}">
           <option value="" disabled {% if not prev.ciudad %}selected{% endif %}>Elige tu ciudad</option>
           {% for value, label in ciudades %}
             <option value="{{ value }}" {% if prev.ciudad == value %}selected{% endif %}>{{ label }}</option>
@@ -88,10 +85,10 @@
       </div>
 
       <!-- TIPO -->
-      <div class="field" id="campo-tipo" style="display:{% if prev.rol == 'profesor' %}block{% else %}none{% endif %};">
+      <div class="field {% if prev.rol != 'profesor' %}campo-oculto{% endif %}" id="campo-tipo">
         <label for="tipo">Soy</label>
         <select id="tipo" name="tipo" onchange="toggleTipo(this.value)"
-          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid {% if errores.tipo %}#e74c3c{% else %}#dce8f5{% endif %}; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+          class="form-select {% if errores.tipo %}input-error{% endif %}">
           <option value="" disabled {% if not prev.tipo %}selected{% endif %}>Elige una opción</option>
           {% for value, label in tipos %}
             <option value="{{ value }}" {% if prev.tipo == value %}selected{% endif %}>{{ label }}</option>
@@ -101,10 +98,9 @@
       </div>
 
       <!-- CARRERA -->
-      <div class="field" id="campo-carrera" style="display:{% if prev.tipo == 'estudiante' %}block{% else %}none{% endif %};">
+      <div class="field {% if prev.tipo != 'estudiante' %}campo-oculto{% endif %}" id="campo-carrera">
         <label for="carrera">Carrera</label>
-        <select id="carrera" name="carrera"
-          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+        <select id="carrera" name="carrera" class="form-select">
           <option value="" disabled {% if not prev.carrera %}selected{% endif %}>Elige tu carrera</option>
           {% for value, label in carreras %}
             <option value="{{ value }}" {% if prev.carrera == value %}selected{% endif %}>{{ label }}</option>
@@ -113,10 +109,9 @@
       </div>
 
       <!-- EMPLEO -->
-      <div class="field" id="campo-empleo" style="display:{% if prev.tipo == 'trabajador' %}block{% else %}none{% endif %};">
+      <div class="field {% if prev.tipo != 'trabajador' %}campo-oculto{% endif %}" id="campo-empleo">
         <label for="empleo">Ocupación</label>
-        <select id="empleo" name="empleo"
-          style="width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
+        <select id="empleo" name="empleo" class="form-select">
           <option value="" disabled {% if not prev.empleo %}selected{% endif %}>Elige tu ocupación</option>
           {% for value, label in empleos %}
             <option value="{{ value }}" {% if prev.empleo == value %}selected{% endif %}>{{ label }}</option>
@@ -127,7 +122,7 @@
       <div class="field">
         <label for="contraseña">Contraseña</label>
         <input type="password" name="contraseña" id="inp-contrasena"
-          style="{% if errores.contraseña %}border-color:#e74c3c;{% endif %}" />
+          class="{% if errores.contraseña %}input-error{% endif %}" />
         {% if errores.contraseña %}<span class="campo-error">{{ errores.contraseña }}</span>{% endif %}
       </div>
 
@@ -142,34 +137,32 @@
 </div>
 
 <style>
-  .campo-error { display:block; color:#e74c3c; font-size:0.75rem; margin-top:0.25rem; }
+  .campo-error   { display:block; color:#e74c3c; font-size:0.75rem; margin-top:0.25rem; }
+  .input-error   { border-color:#e74c3c !important; }
+  .campo-oculto  { display:none !important; }
+  .rol-card      { flex:1; padding:0.9rem; border-radius:12px; cursor:pointer; text-align:center; transition:all 0.13s; }
+  .rol-card-activa  { border:2px solid #1a56a0; background:#eef4fd; }
+  .rol-card-inactiva{ border:2px solid #dce8f5; background:#f5f9ff; }
+  .rol-radio     { display:none; }
+  .form-select   { width:100%; padding:0.65rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.88rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none; }
 </style>
 
 <script>
 function seleccionarRol(rol) {
-  const cards = { estudiante: 'card-estudiante', profesor: 'card-profesor' };
-  Object.keys(cards).forEach(r => {
-    const card  = document.getElementById(cards[r]);
-    const radio = card.querySelector('input[type="radio"]');
-    if (r === rol) {
-      card.style.border = '2px solid #1a56a0';
-      card.style.background = '#eef4fd';
-      radio.checked = true;
-    } else {
-      card.style.border = '2px solid #dce8f5';
-      card.style.background = '#f5f9ff';
-      radio.checked = false;
-    }
+  ['card-estudiante', 'card-profesor'].forEach(id => {
+    const card = document.getElementById(id);
+    const esActiva = (id === 'card-' + rol);
+    card.className = 'rol-card ' + (esActiva ? 'rol-card-activa' : 'rol-card-inactiva');
+    card.querySelector('.rol-radio').checked = esActiva;
   });
-
-  document.getElementById('campo-tipo').style.display = rol === 'profesor' ? 'block' : 'none';
-  document.getElementById('campo-carrera').style.display = 'none';
-  document.getElementById('campo-empleo').style.display = 'none';
+  document.getElementById('campo-tipo').classList.toggle('campo-oculto', rol !== 'profesor');
+  document.getElementById('campo-carrera').classList.add('campo-oculto');
+  document.getElementById('campo-empleo').classList.add('campo-oculto');
 }
 
 function toggleTipo(valor) {
-  document.getElementById('campo-carrera').style.display = valor === 'estudiante' ? 'block' : 'none';
-  document.getElementById('campo-empleo').style.display = valor === 'trabajador' ? 'block' : 'none';
+  document.getElementById('campo-carrera').classList.toggle('campo-oculto', valor !== 'estudiante');
+  document.getElementById('campo-empleo').classList.toggle('campo-oculto',  valor !== 'trabajador');
 }
 
 // Validación client-side
@@ -182,7 +175,7 @@ document.getElementById('form-registro').addEventListener('submit', function(e) 
     const val = el.value.trim();
     let err   = el.parentElement.querySelector('.campo-error-js');
     if (!val) {
-      el.style.borderColor = '#e74c3c';
+      el.classList.add('input-error');
       if (!err) {
         err = document.createElement('span');
         err.className = 'campo-error campo-error-js';
@@ -191,7 +184,7 @@ document.getElementById('form-registro').addEventListener('submit', function(e) 
       err.textContent = errorMsg;
       valido = false;
     } else {
-      el.style.borderColor = '';
+      el.classList.remove('input-error');
       if (err) err.remove();
     }
   }

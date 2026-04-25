@@ -328,6 +328,9 @@ def perfil(request):
         'total_mis_resenas':     total_mis_resenas,
         'mi_puntaje_promedio':   mi_puntaje_promedio,
         'ciudades': CIUDADES,
+        'carreras': CARRERAS,
+        'empleos':  EMPLEOS,
+        'tipos':    TIPO_CHOICES,
     })
 
 

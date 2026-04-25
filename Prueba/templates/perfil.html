@@ -45,7 +45,7 @@
         <div id="datos-ver">
           <div class="perfil-fila">
             <span class="perfil-label">Ciudad</span>
-            <span class="perfil-valor" id="ciudad-display">{{ user.ciudad|default:"No especificado" }}</span>
+            <span class="perfil-valor" id="ciudad-display">{{ user.get_ciudad_display|default:"No especificado" }}</span>
           </div>
           <div class="perfil-fila">
             <span class="perfil-label">Correo</span>
@@ -75,9 +75,9 @@
           <div class="field" style="margin-bottom:0.8rem;">
             <label>Ciudad</label>
             <select id="ciudad-input" name="ciudad" style="width:100%; padding:0.55rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.85rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
-              <option value="" disabled selected>Elige tu ciudad</option>
+              <option value="" disabled {% if not user.ciudad %}selected{% endif %}>Elige tu ciudad</option>
               {% for value, label in ciudades %}
-                <option value="{{ value }}">{{ label }}</option>
+                <option value="{{ value }}" {% if user.ciudad == value %}selected{% endif %}>{{ label }}</option>
               {% endfor %}
             </select>
           </div>
@@ -90,37 +90,27 @@
             <label>Soy</label>
             <select id="tipo-input" onchange="toggleTipoPerfil(this.value)"
               style="width:100%; padding:0.55rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.85rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
-              <option value="estudiante" {% if user.tipo == 'estudiante' %}selected{% endif %}>Estudiante</option>
-              <option value="trabajador" {% if user.tipo == 'trabajador' %}selected{% endif %}>Trabajador/a</option>
+              {% for value, label in tipos %}
+                <option value="{{ value }}" {% if user.tipo == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="field campo-carrera-perfil {% if user.tipo == 'trabajador' %}campo-oculto{% endif %}" style="margin-bottom:0.8rem;">
             <label>Carrera</label>
             <select id="carrera-input" style="width:100%; padding:0.55rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.85rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
               <option value="">No especificado</option>
-              <option value="ing_civil"      {% if user.carrera == 'ing_civil' %}selected{% endif %}>Ingeniería Civil</option>
-              <option value="ing_comercial"  {% if user.carrera == 'ing_comercial' %}selected{% endif %}>Ingeniería Comercial</option>
-              <option value="medicina"       {% if user.carrera == 'medicina' %}selected{% endif %}>Medicina</option>
-              <option value="derecho"        {% if user.carrera == 'derecho' %}selected{% endif %}>Derecho</option>
-              <option value="psicologia"     {% if user.carrera == 'psicologia' %}selected{% endif %}>Psicología</option>
-              <option value="pedagogia"      {% if user.carrera == 'pedagogia' %}selected{% endif %}>Pedagogía</option>
-              <option value="arquitectura"   {% if user.carrera == 'arquitectura' %}selected{% endif %}>Arquitectura</option>
-              <option value="administracion" {% if user.carrera == 'administracion' %}selected{% endif %}>Administración de Empresas</option>
-              <option value="otro"           {% if user.carrera == 'otro' %}selected{% endif %}>Otro</option>
+              {% for value, label in carreras %}
+                <option value="{{ value }}" {% if user.carrera == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="field campo-empleo-perfil {% if user.tipo == 'estudiante' %}campo-oculto{% endif %}" style="margin-bottom:0.8rem;">
             <label>Ocupación</label>
             <select id="empleo-input" style="width:100%; padding:0.55rem 0.9rem; border:1.5px solid #dce8f5; border-radius:10px; font-size:0.85rem; font-family:inherit; color:#1a1a1a; background:#f5f9ff; outline:none; appearance:none;">
               <option value="">No especificado</option>
-              <option value="profesor"            {% if user.empleo == 'profesor' %}selected{% endif %}>Profesor/a</option>
-              <option value="ingeniero"           {% if user.empleo == 'ingeniero' %}selected{% endif %}>Ingeniero/a</option>
-              <option value="medico"              {% if user.empleo == 'medico' %}selected{% endif %}>Médico/a</option>
-              <option value="abogado"             {% if user.empleo == 'abogado' %}selected{% endif %}>Abogado/a</option>
-              <option value="contador"            {% if user.empleo == 'contador' %}selected{% endif %}>Contador/a</option>
-              <option value="diseñador"           {% if user.empleo == 'diseñador' %}selected{% endif %}>Diseñador/a</option>
-              <option value="estudiante_posgrado" {% if user.empleo == 'estudiante_posgrado' %}selected{% endif %}>Estudiante de posgrado</option>
-              <option value="otro"                {% if user.empleo == 'otro' %}selected{% endif %}>Otro</option>
+              {% for value, label in empleos %}
+                <option value="{{ value }}" {% if user.empleo == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="field" style="margin-bottom:0;">
@@ -290,7 +280,7 @@
       </div>
 
       <div id="modo-ver-acciones" class="horario-acciones">
-        <button onclick="activarEdicion()" class="btn-horario btn-horario-editar">Editar horario</button>
+        <button onclick="activarEdicionModal()" class="btn-horario btn-horario-editar">Editar horario</button>
       </div>
       <div id="modo-editar-acciones" class="horario-acciones" style="display:none;">
         <button onclick="guardarHorario()" class="btn-horario btn-horario-guardar">Guardar</button>
@@ -688,6 +678,34 @@
 
   </div>
 </div>
+
+<!-- Modal editar horario -->
+<div id="modal-horario" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:900; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:#fff; border-radius:16px; padding:1.4rem 1.6rem 1.6rem; width:min(740px,96vw); max-height:90vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.18);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.1rem;">
+      <span style="font-size:1rem; font-weight:700; color:#1a1a1a;">Editar disponibilidad</span>
+      <button onclick="cerrarModalHorario()" style="background:none; border:none; font-size:1.2rem; color:#aaa; cursor:pointer; line-height:1; padding:0.2rem 0.4rem;">✕</button>
+    </div>
+
+    <div class="horario-grid" id="horario-grid-modal">
+      <div class="horario-vacia"></div>
+      {% for dia in dias %}
+        <div class="horario-dia"><span>{{ dia }}</span></div>
+      {% endfor %}
+      {% for hora in horas %}
+        <div class="horario-hora">{{ hora }}</div>
+        {% for dia in dias %}
+          <div class="horario-bloque" data-hora="{{ hora }}" data-dia="{{ dia }}" onclick="toggleBloqueModal(this)"></div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+
+    <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1.1rem;">
+      <button onclick="cerrarModalHorario()" class="btn-horario btn-horario-descartar">Cancelar</button>
+      <button onclick="guardarHorarioModal()" class="btn-horario btn-horario-guardar">Guardar</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -1023,5 +1041,44 @@
     });
   }
 
+</script>
+
+<script>
+  function activarEdicionModal() {
+    const grid = document.getElementById('horario-grid-modal');
+    grid.querySelectorAll('.horario-bloque').forEach(b => {
+      b.classList.remove('disponible');
+      pintarGris(b);
+    });
+    horarioGuardado.forEach(clave => {
+      const [dia, hora] = clave.split('_');
+      const b = grid.querySelector(`.horario-bloque[data-dia="${dia}"][data-hora="${hora}"]`);
+      if (b) { b.classList.add('disponible'); pintarVerde(b); }
+    });
+    document.getElementById('modal-horario').style.display = 'flex';
+  }
+
+  function toggleBloqueModal(el) {
+    el.classList.toggle('disponible');
+    if (el.classList.contains('disponible')) pintarVerde(el); else pintarGris(el);
+  }
+
+  function cerrarModalHorario() {
+    document.getElementById('modal-horario').style.display = 'none';
+  }
+
+  async function guardarHorarioModal() {
+    const grid   = document.getElementById('horario-grid-modal');
+    const bloques = [...grid.querySelectorAll('.horario-bloque.disponible')]
+      .map(b => `${b.dataset.dia}_${b.dataset.hora}`);
+    const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    const res  = await fetch('/guardar-horario/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ bloques }),
+    });
+    if (res.ok) location.reload();
+    else alert('Error al guardar. Intenta de nuevo.');
+  }
 </script>
 {% endblock %}
